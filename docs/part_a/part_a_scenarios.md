@@ -1,294 +1,306 @@
-# Part A Unsafe Scenarios Draft (Glass / Reflection)
+# Part A Unsafe Scenarios (Revised Report Draft: Reflection and Transparent Glass)
 
-Status: Working draft for direct integration into the final report's `Unsafe Scenarios` section (and parts of `Mitigation Strategies`)
+This section defines and analyzes the two glass-related corner scenarios assigned to Part A. The two scenarios are intentionally paired: they share the same material family (glass surfaces that create reflection and/or transmission effects), but they produce opposite safety failure polarities.
 
-Scope:
-- A1: Glass facade reflection ghost vehicle (false obstacle confirmation -> false braking / false evasive behavior)
-- A2: Transparent glass door/storefront depth hole (false traversability / free-space error -> low-speed collision or deadlock)
+- **A1 (reflective facade / ghost vehicle):** overreaction to a non-physical obstacle (false obstacle confirmation -> false braking / false evasive behavior)
+- **A2 (transparent glass barrier / free-space leak):** underreaction to a physical non-traversable barrier (depth failure -> traversability error -> low-speed collision or deadlock)
 
-Notes for team merge:
-- This file is written in report-ready English and intentionally mirrors the course handout requirements.
-- It explicitly compares `camera-only` vs `camera+LiDAR+radar` in each scenario.
-- Working citation tags (`[R#]`) match `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_literature_review.md`.
+The pair is analytically useful because it tests two different system assumptions under a common physical cause:
 
-## Part A Framing (Why These Two Scenarios Belong Together)
+1. whether the stack can avoid overconfident obstacle confirmation under cross-modal disagreement (A1), and
+2. whether the stack preserves `unknown` rather than collapsing missing depth into `free` (A2).
 
-These two scenarios are representative of reflection/glass corner cases because both originate from material-dependent sensing failures at glass interfaces, yet they lead to opposite planning hazards:
-
-- **A1 (glass facade ghost vehicle)** stresses a `false positive` path: the stack overreacts to a non-physical obstacle because reflective imagery and weak/ambiguous cross-modal evidence are fused into a track.
-- **A2 (transparent glass door/storefront)** stresses a `false traversability` / `false negative` path: the stack underreacts to a real barrier because depth support is missing or unreliable where a transparent obstacle exists.
-
-This pairing gives Part A strong narrative coherence while preserving scenario diversity. It also supports the assignment's requirement to compare `camera-only` and multi-modal AV architectures under the same thematic family.
+Unless otherwise stated, road class, exact speed limit, lighting schedule, and sensor hardware model are treated as **unspecified**; this is intentional and consistent with the evidence discipline established in the literature review. Citation tags `[L#]` refer to the verified source bank in `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_literature_review.md`.
 
 ---
 
 ## A1. Glass Facade Reflection Creates a Ghost Vehicle and Triggers False Braking / False Evasive Behavior
 
-### A1.1 Scenario Setup (Scenario definition)
+### A1.1 Scenario Definition and Operating Assumptions
 
-**Environment.** A dense urban corridor with large roadside glass facades or mirror-like reflective planes (road class, exact speed limit, and time-of-day are unspecified). The ego vehicle drives along a lane adjacent to or opposite reflective surfaces. The reflective geometry can project the image of a real vehicle (e.g., in the oncoming or neighboring lane) into the ego camera's field of view, creating an apparent vehicle-like target that seems to lie near the ego path.
+**Environment.** The ego vehicle drives in a dense urban corridor with a large roadside glass facade or another mirror-like vertical reflective plane. The relevant geometry is that a real moving vehicle in a neighboring or opposing lane can appear in the ego camera view as a visually plausible vehicle-like target whose image projects near the ego path.
 
-**Actors.** Ego vehicle; one or more real vehicles in an adjacent or opposing lane; a large glass facade / reflective wall. Optional additional actors (pedestrians, parked cars) can be present but are not required for the core failure mode.
+**Actors.**
+- ego vehicle,
+- one or more real vehicles in adjacent or opposing traffic,
+- a reflective glass facade (static infrastructure).
 
-**Sensor modalities for architecture comparison.**
+Optional road users (pedestrians, parked vehicles) may be present but are not required to trigger the core failure chain.
+
+**Architectures compared (required by the course project).**
 - `camera-only`
-- `camera+LiDAR+radar` (specific sensor models/placements unspecified)
+- `camera+LiDAR+radar`
 
-**Trigger condition.** A camera detector produces a stable vehicle-class detection in the reflective region; LiDAR returns are sparse, inconsistent, or geometrically unsupported near the reflective surface; radar may provide weak or multipath-affected evidence; fusion and tracking promote the hypothesis to a high-confidence obstacle (or sufficiently persistent track), which then influences prediction and planning.[R3][R4][R5]
+**Core trigger condition.** A camera detector outputs a stable vehicle hypothesis in a reflection-prone region; LiDAR support is absent, sparse, or geometrically inconsistent near the reflective surface; radar may provide weak or multipath-affected evidence; fusion/tracking promotes the hypothesis to a persistent obstacle state and forwards it to prediction/planning.[L9][L10][L11]
 
-### A1.2 Expected Safe Behavior (What a safety-conscious stack should do)
+### A1.2 Expected Safe Behavior (Safety Objective)
 
-When obstacle evidence is cross-modally inconsistent and concentrated in a reflection-prone region, the AV should respond conservatively but explainably. A safety-oriented expected behavior is:
+The expected safe behavior is not "ignore anything uncertain." It is a **conservative but physically grounded response** to cross-modal contradiction in a reflection-prone region. A safety-conscious stack should:
 
-- prioritize **smooth deceleration** over aggressive emergency braking when collision threat is not physically confirmed,
-- maintain lane unless a lane change is clearly justified and safe,
-- increase time headway and reduce speed to buy sensing time,
-- propagate an explicit uncertainty signal (or low confidence state) into planning and control,
-- log the event as a candidate corner case for data closure rather than treating it as an ordinary high-confidence obstacle.
+- avoid collapsing the hypothesis into a hard obstacle too early,
+- reduce speed smoothly (rather than immediately issuing maximum braking) when collision geometry is unconfirmed,
+- maintain lane unless lateral maneuver safety is independently established,
+- propagate uncertainty to planning/control rather than hiding it in a perception-only confidence score,
+- preserve traceability (e.g., logs or event flags) for data closure and regression testing.
 
-This expected behavior is consistent with the broader safety concern around false activations in AEB-like logic (FMVSS 127 framing) and with the reality that standardized test protocols often avoid reflective backgrounds to preserve measurement reliability (Euro NCAP protocol constraints).[R1][R2]
+This expected behavior is consistent with two external frames:
+- false/inappropriate activation is a recognized safety issue in AEB regulation (FMVSS No. 127), not merely a comfort issue,[L14]
+- standardized crash-avoidance testing often constrains reflective/confounding surroundings to preserve repeatability, which supports the relevance of reflective corner-case analysis outside the standardized envelope.[L15]
 
-### A1.3 Failure Hypothesis (Perception / Prediction / Planning)
+### A1.3 Failure Analysis (Perception -> Prediction -> Planning)
 
-#### A1.3.1 Perception failure hypothesis
+#### A1.3.1 Perception and fusion failure mechanism
 
-A reflected vehicle image can carry realistic texture, shape, and motion cues in RGB space, which may cause a vision detector to classify it as a real vehicle. In the same scene, LiDAR measurements near glass/mirror surfaces can be inconsistent due to specular reflection and transmission effects, leading to sparse support, depth holes, or geometrically unstable returns across frames/viewpoints.[R4]
+The first failure is not necessarily a single-module "misclassification." It is a **mismatch between appearance and geometry**.
 
-As a result, the perception stack may produce one of the following unsafe internal states:
-- a camera-only obstacle hypothesis with insufficient geometric verification,
-- a fused track that is incorrectly stabilized because weak or ambiguous radar/LiDAR evidence is treated as support rather than contradiction,
-- phantom occupancy artifacts (e.g., a local phantom obstacle / wall-like occupancy) that later affect planning costs.[R3]
+- In RGB space, a reflection can preserve enough shape, texture, and motion cues to produce a stable vehicle detection.
+- In LiDAR, glass and mirror-like surfaces can produce inconsistent returns (surface return, behind-surface return, reflected return, or sparse support), and these inconsistencies may vary across viewpoint and frame.[L10]
+- In radar, multipath can create ambiguous target evidence rather than reliable contradiction, depending on geometry.[L11]
 
-#### A1.3.2 Prediction failure hypothesis
+If the fusion logic is designed around permissive confirmation (for example, treating a strong camera detection plus weak auxiliary support as sufficient), the stack can produce an unsafe internal state:
+- a persistent ghost track, or
+- a phantom occupancy artifact that behaves like a legitimate obstacle for downstream modules.[L9]
 
-Once a ghost obstacle enters tracking, prediction modules may generate plausible future motion branches (e.g., stationary obstacle ahead, slowing lead vehicle, or merging vehicle hypothesis), especially if the projected object position is near the ego lane centerline. This can reduce estimated TTC and elevate collision risk scores.
+**Evidence boundary.** The sensor-level mechanisms (reflection ambiguity, LiDAR inconsistency, radar multipath ghosts) are literature-supported.[L9]-[L11] The exact fusion promotion path is scenario-specific and should be presented as an engineering failure hypothesis unless measured in your experiment logs.
 
-This prediction behavior is an engineering inference consistent with standard AV pipeline design: prediction generally assumes tracked objects are physically real unless upstream confidence handling or object semantics explicitly marks them as uncertain.
+#### A1.3.2 Prediction failure mechanism (engineering inference)
 
-#### A1.3.3 Planning/control failure hypothesis
+Once a ghost obstacle is stabilized as a track, prediction may generate physically plausible future trajectories (e.g., stationary in-lane obstacle, slow lead vehicle, or cut-in candidate) because prediction modules typically assume the tracked object is real unless explicitly marked as uncertain. If the projected position lies near the lane centerline, estimated TTC may fall quickly and trigger a risk escalation.
 
-If planning cost design heavily penalizes potential collision without an equally strong mechanism for handling cross-modal contradiction, the planner may choose a high-deceleration brake event or a sudden lateral evasive maneuver. That reaction can create second-order risk:
-- rear-end risk from following vehicles (false-brake path),
-- lateral conflict risk with neighboring lanes (false-evasion path).
+This step is presented as an engineering inference consistent with standard AV pipeline structure; the project should verify it through logs (e.g., track state, predicted trajectories, TTC trend), not just narrative description.
 
-This is the core Part A safety message for A1: reflection-induced sensing inconsistency becomes dangerous when uncertainty is converted into hard collision-avoidance behavior too early.
+#### A1.3.3 Planning/control failure mechanism (engineering inference)
 
-### A1.4 Camera-Only vs Camera+LiDAR+Radar Comparison
+If planning heavily penalizes potential collision but lacks a strong penalty for acting on poorly supported obstacles, the planner may choose:
+- **false hard braking** (rear-end risk), or
+- **false lateral avoidance** (side-conflict risk).
+
+The safety issue is therefore not only false perception. It is the conversion of uncertain evidence into a high-authority control action without sufficient contradiction handling.
+
+### A1.4 Camera-Only vs Camera+LiDAR+Radar (Required Architecture Comparison)
 
 #### `camera-only`
 
-**Relative weakness in A1.** A camera-only architecture lacks an independent geometric modality for cross-checking reflected targets, so it is more vulnerable to stable false positives when the reflection looks semantically plausible.
+A camera-only stack is more exposed to A1 because it lacks an independent geometric channel for rejecting a reflection that is semantically convincing. If the reflection looks vehicle-like and is temporally stable, a detector/tracker can remain confident longer than is safe.
 
-**Relative simplification.** It does not suffer from radar multipath support artifacts or LiDAR reflection inconsistency in the fusion stage, simply because those modalities are absent. However, that simplification does not make it safer; it mostly removes opportunities for contradiction-aware confirmation.
+At the same time, camera-only avoids a different failure mode: it cannot incorrectly treat weak radar multipath or unstable LiDAR returns as supporting evidence because those modalities are absent. This is not an advantage in safety by itself; it simply removes one source of false reinforcement.
 
 #### `camera+LiDAR+radar`
 
-**Theoretical advantage.** Multi-modal sensing should help reject visual reflections through geometric and motion consistency.
+A multi-modal stack is theoretically better positioned to reject reflections. In many scenes, geometry and cross-modal consistency should suppress vision-only false positives.[L5][L6]
 
-**Why A1 remains difficult.** Glass facades are adversarial to that assumption because they can simultaneously degrade LiDAR geometric reliability and create reflective geometries where radar multipath becomes plausible. In such cases, the issue is not lack of sensors but lack of robust disagreement handling.[R4][R5]
+A1 remains difficult because glass facades are precisely the kind of environment where the disambiguation channels can themselves be unreliable or ambiguous:
+- LiDAR support may be missing or inconsistent near the reflective plane,[L10]
+- radar evidence may be weak or multipath-affected,[L11]
+- fusion logic may misread absence of clean support as uncertainty to be resolved later rather than contradiction to be handled now.
 
-**Key design implication.** A1 is a fusion stress test, not merely a vision stress test. The presence of more modalities increases safety only if the fusion/tracking stack treats missing support and contradictory support differently, and if planning consumes uncertainty rather than only binary obstacle confirmations.
+For this reason, A1 should be framed as a **fusion-confidence stress test** rather than a simple vision stress test.
 
-### A1.5 Qualitative Risk Assessment (Severity / Probability)
+### A1.5 Qualitative Risk Characterization
 
-**Severity: Medium to High (qualitative).**
-- High-speed false braking can induce rear-end collisions.
-- Urban false evasive maneuvers can create lateral conflicts or uncomfortable/high-jerk control events.
+**Severity (qualitative): medium to high.**
+- At higher speeds, false braking can create a rear-end collision hazard.
+- In urban settings, sudden evasive maneuvers can create lateral conflict and high-jerk responses.
 
-**Probability: Low to Medium (qualitative).**
-- The event depends on geometry, incidence angle, material properties, and traffic alignment.
-- However, modern urban environments contain many high-exposure reflective surfaces (glass facades, glass noise barriers, commercial storefronts), and test protocol exclusions around reflective environments suggest the phenomenon is not negligible in practice.[R2]
+**Probability (qualitative): low to medium.**
+- Occurrence depends on scene geometry, reflection angle, facade material properties, and traffic alignment.
+- Exposure is non-trivial because modern urban corridors frequently contain glass facades, storefront glazing, and reflective barriers.
+- Protocol constraints around reflective/confounding surroundings suggest these effects are operationally relevant even if they are not standard test fixtures.[L15]
 
-### A1.6 Mitigation Strategies (Short-term patch vs Long-term redesign)
+### A1.6 Mitigation Strategy (Near-Term vs Long-Term)
 
-#### Short-term mitigation (project-implementable or simulator-evaluable)
+#### Near-term (software-first, project-compatible)
 
-1. **Contradiction-aware fusion gating (anti-confirmation bias):**
-   - Decay track confidence when LiDAR repeatedly fails to provide geometrically consistent support under otherwise usable sensing conditions.
-   - Require stronger persistence / multi-frame consistency for targets emerging within reflection-prone regions.
-   - Treat "camera strong + LiDAR absent/unstable + radar weak" as an explicitly uncertain state, not an ordinary positive confirmation.
+**1) Contradiction-aware fusion gating**
+- Distinguish "no support yet" from "repeated contradiction / repeated missing geometric support under valid conditions."
+- Decay track confidence if LiDAR support remains inconsistent over multiple frames in a region known to be reflection-prone.
+- Treat `camera strong + LiDAR inconsistent + radar weak/ambiguous` as an explicitly uncertain state, not a quasi-confirmed obstacle.
 
-2. **Reflection risk-region conditioning:**
-   - Use reflection detection/segmentation (or a simpler proxy region mask in simulation) to tag high-risk observation zones and raise obstacle confirmation thresholds for targets within them.[R3]
+**2) Reflection-risk region conditioning**
+- Use reflection detection/segmentation or a simpler proxy mask (e.g., known glass facade region in simulation) to raise confirmation thresholds inside high-risk observation zones.[L9]
+- Require stronger temporal consistency or multi-view evidence before obstacle promotion in those zones.
 
-3. **Uncertainty-aware planning response:**
-   - Prefer smooth deceleration and lane keeping over immediate hard braking or abrupt lateral avoidance when obstacle certainty is low and collision geometry is unconfirmed.
-   - Pass uncertainty labels into planning/control instead of collapsing early into a binary obstacle state.
+**3) Uncertainty-aware planning response**
+- Prefer lane-keeping and smooth deceleration over hard braking or abrupt lateral avoidance when collision geometry is unconfirmed.
+- Propagate uncertainty labels into planning/control, rather than collapsing to a binary obstacle state upstream.
 
-#### Long-term mitigation (future work / system roadmap)
+#### Long-term (system redesign / future work)
 
-1. **Reflection-aware perception and mapping:**
-   - Maintain reflective plane hypotheses over time (e.g., map or SLAM-supported), and use them as priors for discounting likely mirror projections.
-   - Expand ODD coverage and regression tests to include reflective urban facades as explicit scene categories.
+**1) Reflection-aware mapping and scene priors**
+- Maintain reflective plane hypotheses over time (mapping/SLAM support) and use them to discount mirror projections or flag high-risk perception regions.[L10]
+- Extend ODD coverage and regression suites to explicitly include reflective urban facades, glass noise barriers, and storefronts.
 
-2. **Enhanced sensing for reflection suppression:**
-   - Explore polarization-based imaging or reflection-suppression pipelines (e.g., PolarFree-style ideas) as a long-term hardware+algorithm direction for reducing reflection contamination in RGB observations.[R8]
+**2) Sensor and imaging upgrades**
+- Explore polarization-based imaging or reflection-suppression pipelines as a longer-term route to reduce ambiguity at the image formation stage (e.g., PolarFree-style directions).[L17]
 
-### A1.7 What to Show in the Report / Slides (recommended assets)
+### A1.7 Evaluation Hooks for the Project Report (What to Measure and Show)
 
-**Figures (minimum):**
-- `Fig_A1_setup`: top-view sketch showing ego path, real vehicle, reflective facade plane, reflected image location, and apparent ghost projection
-- `Fig_A1_failure_chain`: failure-chain diagram (reflection -> sensor inconsistency -> fusion ghost track -> low TTC -> false brake/evasion)
-- `Fig_A1_sensor_view`: optional CARLA screenshot or mockup with RGB, LiDAR point cloud behavior, and fusion output side-by-side
+This subsection is included so the scenario text remains tied to measurable outcomes and does not read as a purely conceptual story.
 
-**Metrics (minimum, for later experiment fill-in):**
+**Recommended figures (minimum set).**
+- `Fig_A1_setup`: top-view geometry sketch (ego lane, real vehicle, reflective plane, reflected image location, apparent ghost position)
+- `Fig_A1_failure_chain`: reflection -> cross-modal ambiguity -> ghost track -> TTC drop -> false brake/evasion
+- `Fig_A1_sensor_compare` (optional but strong): RGB / LiDAR / fusion visualization for one representative frame sequence
+
+**Recommended metrics (baseline vs mitigation).**
 - false braking events per 100 passes
-- peak deceleration (`m/s^2`)
-- peak jerk (`m/s^3`)
-- minimum TTC (`s`)
-- ghost-track persistence duration (`s`)
-- modal consistency score (custom; definition to be shared across team)
+- peak deceleration and peak jerk
+- minimum TTC
+- ghost-track persistence duration
+- modal consistency score (define once and reuse across all four scenarios)
 
-**Baseline vs mitigation comparison template:**
-- Baseline: permissive fusion confirmation (single strong visual detection plus weak support can confirm obstacle)
-- Mitigation: contradiction-aware gating + reflection risk-region thresholding + uncertainty-aware planner behavior
+**Important limitation to state explicitly.**
+For a course project, a detection-level or fusion-level artifact injection is acceptable and often preferable to a physically perfect reflection simulation. The key requirement is to preserve the causal logic (ambiguous cross-modal evidence -> incorrect obstacle promotion -> unsafe control tendency) and to quantify how mitigation changes the outcome.
 
 ---
 
 ## A2. Transparent Glass Door / Storefront Causes Depth Holes and Free-Space Misclassification
 
-### A2.1 Scenario Setup (Scenario definition)
+### A2.1 Scenario Definition and Operating Assumptions
 
-**Environment.** A low-speed access area such as a garage exit, shopping mall entrance, office lobby transition, or storefront approach with a transparent glass door, wall, or partition (specific geometry, slope, lighting, and speed limit unspecified). The ego vehicle approaches the glass barrier at low speed.
+**Environment.** The ego vehicle approaches a low-speed access area (e.g., garage exit, mall entrance, lobby transition, or storefront approach) containing a transparent glass door, wall, or partition. The main geometric feature is a visually open region that is physically non-traversable because a transparent barrier occupies the path.
 
-**Actors.** Ego vehicle; transparent glass barrier (static). Optional pedestrians may be present but are not required for the core failure mode.
+**Actors.**
+- ego vehicle,
+- transparent glass barrier (static).
 
-**Sensor modalities for architecture comparison.**
+Pedestrians may be included in an extended version, but they are not required for the core failure mode analyzed here.
+
+**Architectures compared (required by the course project).**
 - `camera-only`
-- `camera+LiDAR+radar` (specific models/placements unspecified)
+- `camera+LiDAR+radar`
 
-**Trigger condition.** The camera sees the background through the glass (possibly with reflections overlaid), while LiDAR / depth sensing yields missing, sparse, or unreliable geometry at the glass boundary. Occupancy or traversability inference treats the region as `free-space` (or treats beyond-glass background as the reachable corridor), causing the planner to produce a path through a non-traversable region.[R6][R7]
+**Core trigger condition.** The camera sees background content through the glass (possibly with superimposed reflections), while LiDAR/depth support is missing, sparse, or unstable at the barrier boundary. Occupancy/traversability estimation interprets the region as `free` (or functionally traversable), causing the planner to generate a path through the barrier.[L8][L13]
 
-### A2.2 Expected Safe Behavior (What a safety-conscious stack should do)
+### A2.2 Expected Safe Behavior (Safety Objective)
 
-For near-field regions that are visually present but depth-unsupported or depth-inconsistent, the system should default to a conservative traversability policy:
+A2 is a traversability-safety problem, so the expected behavior should be phrased in occupancy and planning terms rather than only detector confidence terms.
 
-- mark the region as `unknown` (or temporarily non-traversable) rather than `free`,
-- reduce speed to crawl/creep,
-- stop for confirmation if traversability remains uncertain,
-- avoid committing to a trajectory that requires crossing the uncertain transparent boundary.
+When near-field geometry is visually plausible but depth is missing or inconsistent, the system should:
+- preserve an `unknown` state instead of immediately assigning `free`,
+- reduce speed to crawl/creep in access zones,
+- stop and wait for stronger evidence if traversability remains unresolved,
+- avoid committing to a path that crosses a transparent-looking boundary without confirmation.
 
-In low-speed entry/exit areas, this policy trades efficiency for safety in a way that is usually acceptable. The literature on transparent obstacle detection and navigation supports treating transparent barriers as a dedicated perception/navigation problem rather than assuming generic depth pipelines are sufficient.[R6][R7][R10]
+This behavior is consistent with the logic of probabilistic occupancy mapping under uncertainty (free / occupied / unknown distinction) and with modern mapping frameworks that treat unknown space as first-class rather than incidental.[L1]-[L4]
 
-### A2.3 Failure Hypothesis (Perception / Prediction / Planning)
+### A2.3 Failure Analysis (Perception / Occupancy -> Planning)
 
-#### A2.3.1 Perception / occupancy failure hypothesis
+#### A2.3.1 Perception and occupancy failure mechanism
 
-Transparent barriers can break depth-based occupancy assumptions in two ways:
+A2 is best described as a **representation failure induced by sensing ambiguity**.
 
-1. **Depth hole / no return path:** the glass boundary yields missing or sparse returns, and the occupancy grid incorrectly leaves the region as free or unknown that later gets collapsed to free.
-2. **Misleading return path:** reflections or transmission effects generate unstable points that do not correctly represent the true glass boundary, contaminating occupancy mapping.
+Glass can degrade or distort depth sensing in ways that create two common occupancy errors:
 
-If glass semantics are absent and the occupancy builder assumes missing depth implies traversable space (especially near low-texture, visually open areas), the system can infer a physically impossible corridor through the glass barrier.[R6][R7]
+1. **Depth-hole failure:** returns at the barrier boundary are missing or too sparse, leaving cells unobserved; a downstream rule or planner later treats those cells as traversable.
+2. **Misplaced-return failure:** unstable points from transmission/reflection effects appear at incorrect depths, corrupting occupancy updates and blurring the true barrier boundary.[L8][L10]
 
-#### A2.3.2 Prediction failure hypothesis
+If glass semantics are absent and the occupancy builder (or downstream traversability layer) effectively interprets missing depth as likely free space, the system may infer a corridor through a physically non-traversable glass barrier. This is exactly why transparent-obstacle-specific detection and glass-aware occupancy updates matter.[L8][L13]
 
-Prediction is not the primary failure module in the static version of A2. However, if pedestrians are near the glass door, reflection/transmission effects can complicate localization and path interaction reasoning. For the core Part A implementation, prediction can be treated as secondary and not necessary to trigger the main failure.
+**Evidence boundary.** The sensing and occupancy mechanisms are directly supported by glass/transparent-obstacle literature.[L7][L8][L13] The exact rule by which a given AV stack collapses `unknown` to `free` is implementation-dependent and should be treated as a project hypothesis unless observed in code or logs.
 
-#### A2.3.3 Planning/control failure hypothesis
+#### A2.3.2 Prediction role (secondary for the base scenario)
 
-If the planner consumes an occupancy/traversability map that labels the glass region as `free`, it may generate and execute a path through the glass barrier, leading to low-speed collision. A secondary failure mode is deadlock: if the stack partially recognizes something is wrong but cannot resolve traversability, it may oscillate or stop indefinitely near the entrance.
+Prediction is not the primary failure source in the static version of A2. The unsafe action can occur even with no moving obstacles if traversability is misclassified.
 
-This makes A2 a strong complement to A1: the system does not overreact to a fake object, but under-constrains motion in the presence of a real obstacle.
+Prediction becomes relevant in extended variants (e.g., pedestrians near the glass, reflected motion behind the glass, or bidirectional interaction near an entrance), but it is reasonable to keep prediction secondary in the minimum Part A implementation.
 
-### A2.4 Camera-Only vs Camera+LiDAR+Radar Comparison
+#### A2.3.3 Planning/control failure mechanism
+
+If the planner consumes a traversability map that marks the glass region as `free`, it may commit to a trajectory that intersects the barrier and execute a low-speed collision. A second, less severe but operationally important failure mode is **deadlock**: the system oscillates between partial progress and hesitation because the scene cannot be resolved cleanly.
+
+This makes A2 a useful complement to A1. A1 tests overreaction to a non-existent obstacle; A2 tests underreaction to a real obstacle due to representational overconfidence in free space.
+
+### A2.4 Camera-Only vs Camera+LiDAR+Radar (Required Architecture Comparison)
 
 #### `camera-only`
 
-**Potential strength.** A camera-only system can, in principle, learn semantic glass boundaries from appearance cues (frames, handles, reflections, edge highlights, context).
+A camera-only stack may detect glass boundaries from appearance cues (door frames, handles, edge highlights, reflections, context), but its performance is highly sensitive to scene appearance and training coverage. Minimal-frame glass doors, cluttered backgrounds, heavy reflections, tinting, and lighting changes can all degrade generalization.
 
-**Primary difficulty.** Glass appearance varies widely with lighting, cleanliness, tinting, reflections, and background clutter. Without reliable depth, the system depends heavily on learned priors and training distribution coverage. Generalization can be poor, especially for unusual storefronts or minimal-frame glass doors.
+In other words, camera-only may succeed when semantic priors are strong, but it lacks robust geometry for confirming traversability.
 
 #### `camera+LiDAR+radar`
 
-**Theoretical advantage.** Multi-modal systems can use geometry and signal characteristics to confirm barriers and free-space boundaries.
+A multi-modal stack should, in principle, make traversability safer by adding geometry and motion cues. In practice, A2 remains difficult because depth-relevant modalities can become unreliable exactly where traversability must be decided.
 
-**Why A2 remains difficult.** Glass can make depth modalities unreliable exactly where traversability must be decided. If the fusion stack does not explicitly model "transparent object = depth failure domain," the multi-modal system can become overconfident in free-space inference because depth holes are misinterpreted as open space.[R6][R7]
+If the system does not explicitly model transparent surfaces as **depth-unreliable regions**, multi-modal fusion can become overconfident in free-space inference:
+- missing LiDAR returns are interpreted as open space,
+- weak radar structure is ignored or misused,
+- camera evidence of background visibility is read as confirmation of traversability.
 
-**Key design implication.** A2 is an occupancy/traversability representation stress test. Better safety comes from transparent-obstacle-aware modeling and conservative unknown handling, not from adding modalities alone.
+This is why A2 should be framed as an **occupancy/traversability representation stress test**, not merely a sensor-availability problem.[L8][L13]
 
-### A2.5 Qualitative Risk Assessment (Severity / Probability)
+### A2.5 Qualitative Risk Characterization
 
-**Severity: Medium (qualitative).**
-- Typical speeds are low, but collisions with glass can cause material damage and potentially injure nearby pedestrians or occupants.
-- Deadlock at entrances/exits can also create operational disruption and traffic blockage.
+**Severity (qualitative): medium.**
+- Typical operating speeds are lower than A1, but collisions with glass can damage infrastructure, injure nearby pedestrians, and create hazardous secondary interactions.
+- Deadlock at entrances/exits can obstruct traffic and complicate human intervention.
 
-**Probability: Medium to High (qualitative).**
-- Transparent glass doors and partitions are common in garages, malls, offices, and mixed indoor/outdoor access points.
-- The infrastructure exposure is high even if severe crashes are less common than highway false-braking events.
+**Probability (qualitative): medium to high.**
+- Transparent glass doors and partitions are widespread in garages, malls, office buildings, and mixed indoor/outdoor interfaces.
+- Exposure is high even if the speed regime is relatively low.
 
-### A2.6 Mitigation Strategies (Short-term patch vs Long-term redesign)
+### A2.6 Mitigation Strategy (Near-Term vs Long-Term)
 
-#### Short-term mitigation (project-implementable or simulator-evaluable)
+#### Near-term (software-first, project-compatible)
 
-1. **`Depth hole -> unknown` policy (not `free`):**
-   - In near-field regions where RGB suggests a boundary or foreground structure but depth is missing/inconsistent, mark cells as `unknown` and trigger cautious behavior.
+**1) `Depth hole -> unknown` (not `free`) policy**
+- In near-field regions where image cues suggest a boundary/foreground but depth support is missing or inconsistent, retain `unknown` and let planning treat the area conservatively.
+- This is best presented as a representation policy grounded in occupancy-mapping logic, not merely a special-case heuristic.[L1]-[L4]
 
-2. **Creep-and-confirm strategy for low-speed access zones:**
-   - Add a safety shell for entrances/exits (garage, storefront, lobby) that limits speed and requires stronger traversability confirmation before crossing a transparent-looking boundary.
+**2) Access-zone crawl and stop-confirm behavior**
+- Add a low-speed safety shell for entrances/exits (garage, storefront, lobby transition) that requires stronger traversability evidence before crossing a transparent-looking boundary.
+- The design principle is to trade efficiency for safety where collision energy is lower and uncertainty is resolvable through short-range observation.
 
-3. **Transparent obstacle boundary cues (TOPGN-style features):**
-   - Use LiDAR intensity and spatial consistency features to estimate likely transparent obstacle boundaries and inject them as hard occupancy constraints.[R6]
+**3) Transparent-boundary cues (TOPGN-style direction)**
+- Use LiDAR intensity and local spatial consistency features to estimate likely transparent obstacle boundaries and inject them into occupancy/traversability as hard constraints.[L13]
 
-4. **Glass semantics as an occupancy constraint:**
-   - If a glass plane or transparent barrier is detected (even weakly), propagate that information into occupancy/traversability rather than leaving it only in a perception confidence channel.[R7]
+**4) Glass semantics as a map/planning input, not only a perception label**
+- If a glass plane or transparent barrier is detected (even weakly), pass that information to occupancy/traversability and planning instead of leaving it as a low-level perception annotation.[L8]
 
-#### Long-term mitigation (future work / system roadmap)
+#### Long-term (system redesign / future work)
 
-1. **Glass-aware mapping and scene memory:**
-   - Persist transparent barrier locations in local maps where repeated operation occurs (e.g., parking structures, campus buildings, logistics depots).
-   - Treat transparent surfaces as explicit environment semantics that alter sensor trust models.
+**1) Glass-aware mapping and local scene memory**
+- Persist transparent barrier locations in repeated-operation environments (parking structures, campuses, logistics depots) and use them to adjust sensor trust and traversability inference.
 
-2. **Imaging enhancement / polarization cues:**
-   - Explore polarization and reflection-suppression imaging to improve boundary visibility and reduce reflection interference in glass-rich scenes.[R8]
+**2) Imaging enhancement / polarization cues**
+- Explore polarization and reflection-suppression pipelines to improve boundary visibility and reduce confusion between transmitted background content and barrier appearance.[L17]
 
-3. **Data closure for transparent obstacles:**
-   - Add transparent doors, storefronts, glass partitions, and glass barriers to scenario coverage taxonomy and regression suites, with explicit metrics for unknown handling and traversability safety.
+**3) Data closure for transparent-obstacle scenes**
+- Add transparent doors, glass partitions, and storefront glazing to scenario taxonomies and regression suites, with metrics tied to `unknown` handling and safe stopping behavior.
 
-### A2.7 What to Show in the Report / Slides (recommended assets)
+### A2.7 Evaluation Hooks for the Project Report (What to Measure and Show)
 
-**Figures (minimum):**
-- `Fig_A2_setup`: top-view or perspective sketch showing transparent glass barrier, visible background, and ego trajectory candidate
-- `Fig_A2_occupancy_compare`: heatmap or occupancy visualization comparing `baseline (free-space leak)` vs `mitigation (unknown/blocked)`
-- `Fig_A2_failure_chain`: transparent glass -> depth hole/inconsistency -> occupancy error -> path through glass / deadlock
+**Recommended figures (minimum set).**
+- `Fig_A2_setup`: geometry sketch showing transparent barrier, visible background, and candidate ego path
+- `Fig_A2_occupancy_compare`: occupancy/traversability visualization comparing baseline (free-space leak) vs mitigation (unknown/blocked)
+- `Fig_A2_failure_chain`: transparent barrier -> depth ambiguity -> occupancy error -> collision or deadlock
 
-**Metrics (minimum, for later experiment fill-in):**
-- collision-with-barrier rate / blocked-path failure rate
+**Recommended metrics (baseline vs mitigation).**
+- collision-with-barrier rate
 - deadlock rate (if modeled)
-- stopping distance to glass barrier (`m`)
-- success rate to target without collision (for scenarios with alternate valid path)
-- unknown-area ratio near glass boundary
-- comfort proxy (avoid unnecessary harsh braking in low-speed approach)
+- stopping distance to barrier
+- success rate to target (if alternate valid path exists)
+- unknown-area ratio near barrier
+- low-speed comfort proxy (avoid unnecessary harsh braking)
 
-**Baseline vs mitigation comparison template:**
-- Baseline: depth hole interpreted as free or weakly constrained traversability
-- Mitigation: `depth hole -> unknown` + crawl/stop-confirm + transparent-boundary constraint injection
+**Important limitation to state explicitly.**
+As with A1, a course project does not need photometrically or physically perfect glass simulation. It is sufficient to reproduce the safety-relevant causal chain (depth ambiguity -> traversability error -> unsafe path commitment) with a transparent and documented injection method, then compare baseline and mitigation outcomes.
 
 ---
 
-## Cross-Scenario Comparison (A1 vs A2) for Part A Reporting
+## Cross-Scenario Synthesis (Why A1 and A2 Are Both Representative and Different)
 
-This table is useful in both the report and the deck because it makes the "representative but different" argument explicit.
+The value of Part A is not just that it covers "two glass cases." It is that the two cases jointly expose a broader systems weakness: **confidence mismanagement under material-induced ambiguity**.
 
-| Dimension | A1: Glass Facade Ghost Vehicle | A2: Transparent Glass Door / Storefront |
+| Dimension | A1: Reflective Facade Ghost Vehicle | A2: Transparent Glass Barrier / Free-Space Leak |
 |---|---|---|
-| Material effect | Reflection / mirror-like visual projection | Transparency + reflection overlay + depth failure |
-| Core perception issue | False obstacle confirmation | False traversability / free-space leak |
-| Main downstream module stressed | Fusion + tracking + prediction | Occupancy / traversability + planning |
-| Typical unsafe action | False brake / false evasive maneuver | Low-speed collision with glass or deadlock |
-| Failure polarity | Overreaction to non-physical object | Underreaction to real non-traversable barrier |
-| Most important mitigation principle | Contradiction-aware fusion + uncertainty propagation | `Unknown`-first traversability + transparent-boundary constraints |
+| Dominant optical effect | Specular reflection | Transmission + reflection overlay |
+| Immediate internal failure | False obstacle confirmation | False traversability / free-space misclassification |
+| Primary downstream module stressed | Fusion / tracking / prediction | Occupancy / traversability / planning |
+| Typical unsafe action | False braking / false evasive maneuver | Low-speed collision with barrier or deadlock |
+| Failure polarity | Overreaction to non-physical object | Underreaction to physical obstacle |
+| Highest-value mitigation principle | Contradiction-aware fusion + uncertainty propagation | `Unknown`-first traversability + transparent-boundary constraints |
 
-## Suggested Text Block for the Team Report's Part A Transition (optional)
-
-The two glass-related scenarios in Part A were selected to span two complementary safety failure polarities under a shared physical cause (glass/reflection-induced sensing inconsistency). Scenario A1 examines how reflective facades can create vehicle-like ghost observations that are incorrectly stabilized by fusion and tracking, leading to false braking or false evasive behavior. Scenario A2 examines how transparent barriers can create depth failures that leak into occupancy/traversability inference, causing the planner to treat a non-traversable region as free space. Together, they allow a controlled comparison of `camera-only` and `camera+LiDAR+radar` architectures while emphasizing that additional sensing modalities only improve safety when disagreement and uncertainty are modeled explicitly.
-
-## Integration Checklist (for later, after experiments are ready)
-
-When you and your teammate merge final content, ensure each Part A scenario has:
-- one scenario setup figure
-- one failure-chain figure
-- one baseline vs mitigation metric figure
-- one explicit `camera-only` vs multi-modal comparison paragraph
-- one short paragraph on limitations / assumptions (e.g., injected artifacts vs physical simulation fidelity)
+This cross-scenario comparison is also useful for the final report because it helps avoid a shallow conclusion ("glass is hard"). A more defensible conclusion is that **glass-rich environments break the usual alignment between appearance and geometry**, and safety depends on whether the stack preserves and acts on that ambiguity correctly.
 
