@@ -1,7 +1,7 @@
-# Team Scenarios Working Draft (A1, A2, S1, S3)
+# Team Scenarios Working Draft (A1, A2, B1, B2)
 
 > Purpose: this working draft keeps all four scenarios in one place for report integration.
-> A1/A2 remain owned by Part A, while S1/S3 are teammate-owned Part B scenarios now registered in the project baseline.
+> A1/A2 remain owned by Part A, while B1/B2 are teammate-owned Part B scenarios now registered in the project baseline.
 
 ## Scenario List and Ownership
 
@@ -9,8 +9,8 @@
 |---|---|---|---|
 | A1 | 玻璃幕墙反射“幽灵车辆”导致误制动/误避让 | You | Reflection / cross-modal inconsistency |
 | A2 | 透明玻璃门/橱窗导致深度空洞与 free-space 误判 | You | Transparent obstacle / traversability error |
-| S1 | 可逆车道入口处车道方向信号误读/车道归属错误 | Teammate | Temporary traffic control + lane attribution conflict |
-| S3 | 可逆车道方向切换过渡窗口状态机错误（规则振荡/卡死） | Teammate | Transition timing + mode arbitration failure |
+| B1 | 可逆车道入口处车道方向信号误读/车道归属错误 | Teammate | Temporary traffic control + lane attribution conflict |
+| B2 | 可逆车道方向切换过渡窗口状态机错误（规则振荡/卡死） | Teammate | Transition timing + mode arbitration failure |
 
 ---
 
@@ -36,7 +36,7 @@
 
 ---
 
-## S1 (Part B) — 可逆车道入口信号误读 / 车道归属错误
+## B1 (Part B) — 可逆车道入口信号误读 / 车道归属错误
 
 ### 场景定义
 
@@ -69,7 +69,7 @@
 
 ---
 
-## S3 (Part B) — 过渡窗口状态机错误（规则振荡/卡死）
+## B2 (Part B) — 过渡窗口状态机错误（规则振荡/卡死）
 
 ### 场景定义
 
@@ -107,9 +107,8 @@
 ## Integration Notes for Report Writing
 
 - 统一模板（每场景同结构）：Setup / Expected Safe Behavior / Failure Chain / Architecture Comparison / Risk / Mitigation。
-- S1 与 S3 可共享同一组背景文献：
+- B1 与 B2 可共享同一组背景文献：
   - lane-use control signal 标准与可逆车道运行规则，
   - 信号识别鲁棒性与 lane attribution 方法，
   - 模式仲裁/状态机在不确定输入下的稳定性设计。
-- 建议 S1 偏重“语义与归属误解”，S3 偏重“时序与仲裁振荡”，避免内容重复。
-
+- 建议 B1 偏重“语义与归属误解”，B2 偏重“时序与仲裁振荡”，避免内容重复。

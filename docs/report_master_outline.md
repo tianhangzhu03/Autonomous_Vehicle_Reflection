@@ -23,8 +23,8 @@
 ### 1.4 Unsafe Scenarios
 - A1: Glass facade ghost vehicle
 - A2: Transparent glass barrier free-space error
-- S1 (Part B): Reversible-lane entrance lane-control signal misread / lane attribution error
-- S3 (Part B): Transition-window state-machine failure under unsynchronized signals and inconsistent human behavior
+- B1 (Part B): Reversible-lane entrance lane-control signal misread / lane attribution error
+- B2 (Part B): Transition-window state-machine failure under unsynchronized signals and inconsistent human behavior
 - For each scenario: setup, expected safe behavior, failure chain, architecture comparison, risk
 
 ### 1.5 Simulation & Evaluation Setup (recommended section)
@@ -51,7 +51,7 @@
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_literature_review.md`
 - [x] Part A unsafe scenarios detailed draft (A1 + A2, refined writing, evidence-vs-inference boundary)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_scenarios.md`
-- [x] Team scenario baseline draft updated with Part B S1/S3 (all four scenarios in one file)
+- [x] Team scenario baseline draft updated with Part B B1/B2 (all four scenarios in one file)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/scenarios/team_scenarios_draft.md`
 - [x] Full `1.3 Literature Review` draft for all four scenarios (22 curated sources + critical synthesis)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/literature_review_1_3_draft.md`
@@ -66,8 +66,8 @@
 | Part A scenario 1 | You | A1 Glass facade reflection ghost vehicle |
 | Part A scenario 2 | You | A2 Transparent glass barrier / free-space error |
 | Part A writing core | You | Part A literature + Part A unsafe scenarios + Part A mitigation/evaluation text integration |
-| Part B scenario 1 | Teammate | S1 Reversible-lane entrance lane-control signal misread / lane attribution error |
-| Part B scenario 2 | Teammate | S3 Transition-window state-machine failure under multi-source rule conflicts |
+| Part B scenario 1 | Teammate | B1 Reversible-lane entrance lane-control signal misread / lane attribution error |
+| Part B scenario 2 | Teammate | B2 Transition-window state-machine failure under multi-source rule conflicts |
 | Team merge | Both | Unified report structure, references, figures, final proofreading |
 
 ---
@@ -83,7 +83,7 @@
 
 ### 4.2 Teammate pending items (Part B)
 - [ ] Part B literature subsection draft
-- [ ] S1/S3 unsafe scenario detailed write-up (same template depth as Part A)
+- [ ] B1/B2 unsafe scenario detailed write-up (same template depth as Part A)
 - [ ] Part B mitigation and evaluation plan
 - [ ] Part B figures and result placeholders
 
