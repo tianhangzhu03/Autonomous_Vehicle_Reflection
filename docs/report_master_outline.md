@@ -53,8 +53,8 @@
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_scenarios.md`
 - [x] Team scenario baseline draft updated with Part B B1/B2 (all four scenarios in one file)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/scenarios/team_scenarios_draft.md`
-- [x] Full `1.3 Literature Review` draft for all four scenarios (22 curated sources + critical synthesis)
-  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/literature_review_1_3_draft.md`
+- [x] Merged `1.1–1.3` section draft (Abstract + Introduction + Literature Review)
+  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/report_sections_1_1_1_3_merged.md`
 - [x] All above pushed to `main` branch
 
 ---

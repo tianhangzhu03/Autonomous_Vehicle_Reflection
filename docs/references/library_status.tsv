@@ -1,0 +1,38 @@
+id	status	filename	size_bytes	type	tags	title	url
+R01	missing	fmvss_127_2024_final_rule.pdf	0	Regulation	A1,safety	FMVSS 127 Final Rule: Automatic Emergency Braking Systems for Light Vehicles	https://www.nhtsa.gov/sites/nhtsa.gov/files/2024-04/final-rule-automatic-emergency-braking-systems-light-vehicles_web-version.pdf
+R02	downloaded	euroncap_frontal_collisions_v11_2025.pdf	5744502	Protocol	A1,B1,B2	Euro NCAP Protocol: Crash Avoidance - Frontal Collisions v11	https://www.euroncap.com/media/91710/euro-ncap-protocol-crash-avoidance-frontal-collisions-v11.pdf
+R03	downloaded	nhtsa_pe22002_unexpected_brake_activation_2022.pdf	972447	Investigation	A1	NHTSA ODI PE22-002 Unexpected Brake Activation	https://static.nhtsa.gov/odi/inv/2022/INOA-PE22002-4385.PDF
+R04	downloaded	nhtsa_ea22002_autopilot_firstresponder_2022.pdf	1008975	Investigation	safety	NHTSA ODI EA22-002 Autopilot & First Responder Scenes	https://static.nhtsa.gov/odi/inv/2022/INOA-EA22002-3184.PDF
+R05	downloaded	mutcd_11th_edition_2023.pdf	24096072	Standard	B1,B2	MUTCD 11th Edition	https://mutcd.fhwa.dot.gov/pdfs/11th_Edition/mutcd11thedition.pdf
+R06	downloaded	fhwa_hrt_19_025_lane_reversal_2019.pdf	3202899	GovReport	B1,B2	Traffic Simulation Assessment of New and Reconstructed Two-Way Left-Turn Lane Reversal Configurations	https://www.fhwa.dot.gov/publications/research/safety/19025/19025.pdf
+R07	downloaded	fhwa_hop_08_024_signalized_intersections_guide_2008.pdf	11366433	GovGuide	B1,B2	Signalized Intersections: Informational Guide (FHWA-HRT-04-091)	https://www.fhwa.dot.gov/publications/research/safety/04091/04091.pdf
+R08	missing	fhwa_hrt_24_117_work_zone_2024.pdf	0	GovReport	safety,context	FHWA-HRT-24-117 Automated Driving in Work Zones	https://highways.dot.gov/sites/fhwa.dot.gov/files/FHWA-HRT-24-117_0.pdf
+R09	downloaded	rosap_safe_d_reversible_lane_2021.pdf	3344941	GovReport	B1,B2	Safe-D: Reversible Lane and Dynamic Lane Assignment (report)	https://rosap.ntl.bts.gov/view/dot/56136/dot_56136_DS1.pdf
+R10	downloaded	3dref_2024.pdf	5137309	ArXiv	A1	3DRef: 3D Dataset and Benchmark for Reflection Detection in RGB and Lidar Data	https://arxiv.org/pdf/2403.06538.pdf
+R11	downloaded	lidar_reflections_plane_slam_2024.pdf	3557184	ArXiv	A1,A2	Detection and Utilization of Reflections in LiDAR Scans Through Plane Optimization and Plane SLAM	https://arxiv.org/pdf/2406.10494.pdf
+R12	downloaded	topgn_2024.pdf	3258603	ArXiv	A2	TOPGN: Real-time Transparent Obstacle Detection using Lidar Point Cloud Intensity	https://arxiv.org/pdf/2408.05608.pdf
+R13	missing	lidar_glass_detection_sensors_2021.pdf	0	JournalPDF	A2	LiDAR-Based Glass Detection for Improved Occupancy Grid Mapping and Object Detection	https://www.mdpi.com/1424-8220/21/7/2263/pdf
+R14	downloaded	polarfree_cvpr2025.pdf	5447105	CVPR	A1,A2	PolarFree: Polarization-based Reflection-Free Imaging	https://openaccess.thecvf.com/content/CVPR2025/papers/Yao_PolarFree_Polarization-based_Reflection-Free_Imaging_CVPR_2025_paper.pdf
+R15	downloaded	cleargrasp_2019.pdf	17746309	ArXiv	A2	ClearGrasp: 3D Shape Estimation of Transparent Objects for Manipulation	https://arxiv.org/pdf/1910.02550.pdf
+R16	downloaded	multimodal_sensor_fusion_survey_2022.pdf	2945854	ArXiv	A1,A2,B1,B2	Multi-modal Sensor Fusion for Auto Driving Perception: A Survey	https://arxiv.org/pdf/2202.02703.pdf
+R17	downloaded	bevfusion_2022.pdf	10244020	ArXiv	A1,A2	BEVFusion: Multi-Task Multi-Sensor Fusion with Unified Bird's-Eye View Representation	https://arxiv.org/pdf/2205.13542.pdf
+R18	downloaded	uncertainty_encoded_fusion_2023.pdf	1385045	ArXiv	A1,A2	Uncertainty-Encoded Multi-Modal Fusion for Robust Object Detection in Autonomous Driving	https://arxiv.org/pdf/2307.16121.pdf
+R19	downloaded	radar_ghost_targets_2023.pdf	1559375	ArXiv	A1	Detection of Ghost Targets for Automotive Radar in the Presence of Multipath	https://arxiv.org/pdf/2309.13585.pdf
+R20	downloaded	rss_formal_model_2017.pdf	1325278	ArXiv	B2,safety	On a Formal Model of Safe and Scalable Self-driving Cars	https://arxiv.org/pdf/1708.06374.pdf
+R21	downloaded	rhp_rule_hierarchies_2022.pdf	967617	ArXiv	B2	Receding Horizon Planning with Rule Hierarchies for Autonomous Vehicles	https://arxiv.org/pdf/2212.03323.pdf
+R22	downloaded	motion_planning_survey_2016.pdf	6504140	ArXiv	B2,context	A Survey of Motion Planning and Control Techniques for Self-driving Urban Vehicles	https://arxiv.org/pdf/1604.07446.pdf
+R23	downloaded	occupancy_grids_elfes_2013.pdf	2569951	ArXiv	A2	Occupancy Grids: A Stochastic Spatial Representation for Active Robot Perception	https://arxiv.org/pdf/1304.1098.pdf
+R24	downloaded	ufomap_2020.pdf	3459819	ArXiv	A2	UFOMap: An Efficient Probabilistic 3D Mapping Framework That Embraces the Unknown	https://arxiv.org/pdf/2003.04749.pdf
+R25	downloaded	driveu_traffic_light_dataset_2018.pdf	481873	ArXiv	B1,B2	The DriveU Traffic Light Dataset: Introduction and Comparison with Existing Datasets	https://arxiv.org/pdf/1809.02789.pdf
+R26	downloaded	traffic_light_to_lane_assignment_2023.pdf	352727	ArXiv	B1	Traffic-Light-to-Lane Assignment in Structured Urban Environments	https://arxiv.org/pdf/2309.12087.pdf
+R27	downloaded	semantic_map_learning_tl_lane_2023.pdf	1648629	ArXiv	B1	Semantic Map Learning for Traffic-Light-to-Lane Association	https://arxiv.org/pdf/2309.14793.pdf
+R28	missing	traffic_sign_lane_matching_2024.pdf	0	JournalPDF	B1	Precise Traffic Sign and Lane Line Matching Method	https://www.mdpi.com/2079-9292/13/22/4359/pdf
+R29	downloaded	nuscenes_dataset_cvpr2020.pdf	1744945	CVPR	dataset,context	nuScenes: A multimodal dataset for autonomous driving	https://openaccess.thecvf.com/content_CVPR_2020/papers/Caesar_nuScenes_A_Multimodal_Dataset_for_Autonomous_Driving_CVPR_2020_paper.pdf
+R30	downloaded	waymo_open_dataset_cvpr2020.pdf	1009956	CVPR	dataset,context	Scalability in Perception for Autonomous Driving: Waymo Open Dataset	https://openaccess.thecvf.com/content_CVPR_2020/papers/Sun_Scalability_in_Perception_for_Autonomous_Driving_Waymo_Open_Dataset_CVPR_2020_paper.pdf
+R31	downloaded	argoverse2_2023.pdf	7823463	ArXiv	dataset,context	Argoverse 2: Next Generation Datasets for Self-Driving Perception and Forecasting	https://arxiv.org/pdf/2301.00493.pdf
+R32	missing	octomap_framework_2013.pdf	0	AuthorPDF	A2	OctoMap: An Efficient Probabilistic 3D Mapping Framework Based on Octrees	https://octomap.github.io/octomap.pdf
+R33	downloaded	bevformer_2022.pdf	4739748	ArXiv	A1,A2,context	BEVFormer: Learning Bird's-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers	https://arxiv.org/pdf/2203.17270.pdf
+R34	downloaded	centerfusion_2020.pdf	5370085	ArXiv	A1,A2	CenterFusion: Center-based Radar and Camera Fusion for 3D Object Detection	https://arxiv.org/pdf/2011.04841.pdf
+R35	downloaded	lift_splat_shoot_2020.pdf	5319285	ArXiv	A1,A2,context	Lift, Splat, Shoot: Encoding Images from Arbitrary Camera Rigs by Implicit Unprojection	https://arxiv.org/pdf/2008.05711.pdf
+R36	downloaded	petr_2022.pdf	4345274	ArXiv	A1,A2,context	PETR: Position Embedding Transformation for Multi-View 3D Object Detection	https://arxiv.org/pdf/2203.05625.pdf
+R37	downloaded	transfuser_2021.pdf	3148950	ArXiv	A1,A2,context	TransFuser: Imitation with Transformer-Based Sensor Fusion for Autonomous Driving	https://arxiv.org/pdf/2104.09224.pdf
