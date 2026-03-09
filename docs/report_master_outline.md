@@ -2,46 +2,54 @@
 
 ## 1. Report Structure (IEEE/ACM double-column)
 
-### 1.1 Abstract
+### Abstract (摘要)
 - Project objective (red-team AV corner cases)
 - 4 scenarios overview
 - Key findings and contributions
 - Team contribution statement (required for 2-person team)
 
-### 1.2 Introduction
+### 1 Introduction
 - Why corner cases matter for AV safety
 - Scope of this project (2 glass/reflection + 2 non-glass)
 - Camera-only vs camera+LiDAR+radar comparison scope
 - Paper organization
 
-### 1.3 Literature Review
+### 2 Literature Review
 - Safety/regulation framing (FMVSS 127, Euro NCAP, NHTSA investigations)
 - Perception/fusion foundations and uncertainty handling
 - Reflection/transparent-glass sensing mechanisms
 - Reversible-lane control literature (lane-use control signals, lane attribution, transition-window operations)
 
-### 1.4 Unsafe Scenarios
+### 3 UNSAFE SCENARIOS (Split by Part A / Part B)
+
+#### 3.1 Part A — Glass/Reflection Scenarios (Owner: You)
 - A1: Glass facade ghost vehicle
 - A2: Transparent glass barrier free-space error
-- B1 (Part B): Reversible-lane entrance lane-control signal misread / lane attribution error
-- B2 (Part B): Transition-window state-machine failure under unsynchronized signals and inconsistent human behavior
-- For each scenario: setup, expected safe behavior, failure chain, architecture comparison, risk
+- For each scenario: setup, expected safe behavior, failure chain, camera-only vs camera+LiDAR+radar comparison, qualitative risk, mitigation hooks
 
-### 1.5 Simulation & Evaluation Setup (recommended section)
+#### 3.2 Part B — Reversible-Lane Scenarios (Owner: Teammate)
+- B1: Reversible-lane entrance lane-control signal misread / lane attribution error
+- B2: Transition-window state-machine failure under unsynchronized signals and inconsistent human behavior
+- For each scenario: setup, expected safe behavior, failure chain, camera-only vs camera+LiDAR+radar comparison, qualitative risk, mitigation hooks
+
+### 4 Simulation & Evaluation Setup
 - Platform/setup assumptions
 - Baseline vs mitigation experiment design
 - Unified metrics and logging format
 - Reproducibility notes
 
-### 1.6 Mitigation Strategies
+### 5 Mitigation Strategies
 - Cross-scenario principles
 - Scenario-specific short-term patches
 - Longer-term system redesign directions
 
-### 1.7 Conclusion
+### 6 Conclusion
 - Main safety insights
 - Limits of current study
 - Future work
+
+### References
+- Unified citation list for all sections
 
 ---
 
@@ -49,13 +57,18 @@
 
 - [x] Part A literature review (major revised version, verified references, wider time span)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_literature_review.md`
-- [x] Part A unsafe scenarios detailed draft (A1 + A2, refined writing, evidence-vs-inference boundary)
+- [x] Part A unsafe scenarios formal write-up for Section `1.4.1` (A1 + A2, architecture-level failure chain)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_scenarios.md`
 - [x] Team scenario baseline draft updated with Part B B1/B2 (all four scenarios in one file)
   - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/scenarios/team_scenarios_draft.md`
 - [x] Merged `1.1–1.3` section draft (Abstract + Introduction + Literature Review)
-  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/report_sections_1_1_1_3_merged.md`
-- [x] All above pushed to `main` branch
+  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/report_sections_1_1_1_3_初稿.md`
+- [x] Part A `1.5 + 1.6` working draft (simulation/evaluation + mitigation, 2-day execution version)
+  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_sections_1_5_1_6_draft.md`
+- [x] Unified ACM draft merged into one PDF (`Abstract + 1~6 + References`) with Part B placeholders reserved
+  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_1_4_1_acm.tex`
+  - `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_1_4_1_acm.pdf`
+- [ ] Current working changes pending commit/push (batch update at end of day)
 
 ---
 

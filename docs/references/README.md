@@ -4,13 +4,13 @@ This folder stores curated references for the AV corner-case project (A1, A2, B1
 
 ## Snapshot
 - Total catalog entries: **37**
-- Downloaded PDFs: **32**
-- Missing/blocked PDFs: **5**
+- Downloaded PDFs: **36**
+- Missing/blocked PDFs: **1**
 - PDF folder: `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/references/pdfs`
 - Status table: `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/references/library_status.tsv`
 
 ## Recommended Core Set for Writing (16 items)
-- **R01** (URL only) FMVSS 127 Final Rule: Automatic Emergency Braking Systems for Light Vehicles
+- **R01** (PDF) FMVSS 127 Final Rule: Automatic Emergency Braking Systems for Light Vehicles
 - **R02** (PDF) Euro NCAP Protocol: Crash Avoidance - Frontal Collisions v11
 - **R03** (PDF) NHTSA ODI PE22-002 Unexpected Brake Activation
 - **R05** (PDF) MUTCD 11th Edition
@@ -28,10 +28,6 @@ This folder stores curated references for the AV corner-case project (A1, A2, B1
 - **R27** (PDF) Semantic Map Learning for Traffic-Light-to-Lane Association
 
 ## Missing/Blocked PDFs
-- **R01** fmvss_127_2024_final_rule.pdf — https://www.nhtsa.gov/sites/nhtsa.gov/files/2024-04/final-rule-automatic-emergency-braking-systems-light-vehicles_web-version.pdf
-- **R08** fhwa_hrt_24_117_work_zone_2024.pdf — https://highways.dot.gov/sites/fhwa.dot.gov/files/FHWA-HRT-24-117_0.pdf
-- **R13** lidar_glass_detection_sensors_2021.pdf — https://www.mdpi.com/1424-8220/21/7/2263/pdf
-- **R28** traffic_sign_lane_matching_2024.pdf — https://www.mdpi.com/2079-9292/13/22/4359/pdf
 - **R32** octomap_framework_2013.pdf — https://octomap.github.io/octomap.pdf
 
 ## Notes

@@ -1,17 +1,17 @@
 id	status	filename	size_bytes	type	tags	title	url
-R01	missing	fmvss_127_2024_final_rule.pdf	0	Regulation	A1,safety	FMVSS 127 Final Rule: Automatic Emergency Braking Systems for Light Vehicles	https://www.nhtsa.gov/sites/nhtsa.gov/files/2024-04/final-rule-automatic-emergency-braking-systems-light-vehicles_web-version.pdf
+R01	downloaded	fmvss_127_2024_final_rule.pdf	1727687	Regulation	A1,safety	FMVSS 127 Final Rule: Automatic Emergency Braking Systems for Light Vehicles	https://www.nhtsa.gov/sites/nhtsa.gov/files/2024-04/final-rule-automatic-emergency-braking-systems-light-vehicles_web-version.pdf
 R02	downloaded	euroncap_frontal_collisions_v11_2025.pdf	5744502	Protocol	A1,B1,B2	Euro NCAP Protocol: Crash Avoidance - Frontal Collisions v11	https://www.euroncap.com/media/91710/euro-ncap-protocol-crash-avoidance-frontal-collisions-v11.pdf
 R03	downloaded	nhtsa_pe22002_unexpected_brake_activation_2022.pdf	972447	Investigation	A1	NHTSA ODI PE22-002 Unexpected Brake Activation	https://static.nhtsa.gov/odi/inv/2022/INOA-PE22002-4385.PDF
 R04	downloaded	nhtsa_ea22002_autopilot_firstresponder_2022.pdf	1008975	Investigation	safety	NHTSA ODI EA22-002 Autopilot & First Responder Scenes	https://static.nhtsa.gov/odi/inv/2022/INOA-EA22002-3184.PDF
 R05	downloaded	mutcd_11th_edition_2023.pdf	24096072	Standard	B1,B2	MUTCD 11th Edition	https://mutcd.fhwa.dot.gov/pdfs/11th_Edition/mutcd11thedition.pdf
 R06	downloaded	fhwa_hrt_19_025_lane_reversal_2019.pdf	3202899	GovReport	B1,B2	Traffic Simulation Assessment of New and Reconstructed Two-Way Left-Turn Lane Reversal Configurations	https://www.fhwa.dot.gov/publications/research/safety/19025/19025.pdf
 R07	downloaded	fhwa_hop_08_024_signalized_intersections_guide_2008.pdf	11366433	GovGuide	B1,B2	Signalized Intersections: Informational Guide (FHWA-HRT-04-091)	https://www.fhwa.dot.gov/publications/research/safety/04091/04091.pdf
-R08	missing	fhwa_hrt_24_117_work_zone_2024.pdf	0	GovReport	safety,context	FHWA-HRT-24-117 Automated Driving in Work Zones	https://highways.dot.gov/sites/fhwa.dot.gov/files/FHWA-HRT-24-117_0.pdf
+R08	downloaded	fhwa_hrt_24_117_work_zone_2024.pdf	2489747	GovReport	safety,context	FHWA-HRT-24-117 Automated Driving in Work Zones	https://highways.dot.gov/sites/fhwa.dot.gov/files/FHWA-HRT-24-117_0.pdf
 R09	downloaded	rosap_safe_d_reversible_lane_2021.pdf	3344941	GovReport	B1,B2	Safe-D: Reversible Lane and Dynamic Lane Assignment (report)	https://rosap.ntl.bts.gov/view/dot/56136/dot_56136_DS1.pdf
 R10	downloaded	3dref_2024.pdf	5137309	ArXiv	A1	3DRef: 3D Dataset and Benchmark for Reflection Detection in RGB and Lidar Data	https://arxiv.org/pdf/2403.06538.pdf
 R11	downloaded	lidar_reflections_plane_slam_2024.pdf	3557184	ArXiv	A1,A2	Detection and Utilization of Reflections in LiDAR Scans Through Plane Optimization and Plane SLAM	https://arxiv.org/pdf/2406.10494.pdf
 R12	downloaded	topgn_2024.pdf	3258603	ArXiv	A2	TOPGN: Real-time Transparent Obstacle Detection using Lidar Point Cloud Intensity	https://arxiv.org/pdf/2408.05608.pdf
-R13	missing	lidar_glass_detection_sensors_2021.pdf	0	JournalPDF	A2	LiDAR-Based Glass Detection for Improved Occupancy Grid Mapping and Object Detection	https://www.mdpi.com/1424-8220/21/7/2263/pdf
+R13	downloaded	lidar_glass_detection_sensors_2021.pdf	5128829	JournalPDF	A2	LiDAR-Based Glass Detection for Improved Occupancy Grid Mapping and Object Detection	https://www.mdpi.com/1424-8220/21/7/2263/pdf
 R14	downloaded	polarfree_cvpr2025.pdf	5447105	CVPR	A1,A2	PolarFree: Polarization-based Reflection-Free Imaging	https://openaccess.thecvf.com/content/CVPR2025/papers/Yao_PolarFree_Polarization-based_Reflection-Free_Imaging_CVPR_2025_paper.pdf
 R15	downloaded	cleargrasp_2019.pdf	17746309	ArXiv	A2	ClearGrasp: 3D Shape Estimation of Transparent Objects for Manipulation	https://arxiv.org/pdf/1910.02550.pdf
 R16	downloaded	multimodal_sensor_fusion_survey_2022.pdf	2945854	ArXiv	A1,A2,B1,B2	Multi-modal Sensor Fusion for Auto Driving Perception: A Survey	https://arxiv.org/pdf/2202.02703.pdf
@@ -26,7 +26,7 @@ R24	downloaded	ufomap_2020.pdf	3459819	ArXiv	A2	UFOMap: An Efficient Probabilist
 R25	downloaded	driveu_traffic_light_dataset_2018.pdf	481873	ArXiv	B1,B2	The DriveU Traffic Light Dataset: Introduction and Comparison with Existing Datasets	https://arxiv.org/pdf/1809.02789.pdf
 R26	downloaded	traffic_light_to_lane_assignment_2023.pdf	352727	ArXiv	B1	Traffic-Light-to-Lane Assignment in Structured Urban Environments	https://arxiv.org/pdf/2309.12087.pdf
 R27	downloaded	semantic_map_learning_tl_lane_2023.pdf	1648629	ArXiv	B1	Semantic Map Learning for Traffic-Light-to-Lane Association	https://arxiv.org/pdf/2309.14793.pdf
-R28	missing	traffic_sign_lane_matching_2024.pdf	0	JournalPDF	B1	Precise Traffic Sign and Lane Line Matching Method	https://www.mdpi.com/2079-9292/13/22/4359/pdf
+R28	downloaded	traffic_sign_lane_matching_2024.pdf	5679206	JournalPDF	B1	Precise Traffic Sign and Lane Line Matching Method	https://www.mdpi.com/2079-9292/13/22/4359/pdf
 R29	downloaded	nuscenes_dataset_cvpr2020.pdf	1744945	CVPR	dataset,context	nuScenes: A multimodal dataset for autonomous driving	https://openaccess.thecvf.com/content_CVPR_2020/papers/Caesar_nuScenes_A_Multimodal_Dataset_for_Autonomous_Driving_CVPR_2020_paper.pdf
 R30	downloaded	waymo_open_dataset_cvpr2020.pdf	1009956	CVPR	dataset,context	Scalability in Perception for Autonomous Driving: Waymo Open Dataset	https://openaccess.thecvf.com/content_CVPR_2020/papers/Sun_Scalability_in_Perception_for_Autonomous_Driving_Waymo_Open_Dataset_CVPR_2020_paper.pdf
 R31	downloaded	argoverse2_2023.pdf	7823463	ArXiv	dataset,context	Argoverse 2: Next Generation Datasets for Self-Driving Perception and Forecasting	https://arxiv.org/pdf/2301.00493.pdf

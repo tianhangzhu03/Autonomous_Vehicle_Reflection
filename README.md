@@ -43,7 +43,7 @@
 
 ### 3.1 报告主框架
 - `docs/report_master_outline.md`：报告总体大纲与任务状态
-- `docs/report_sections_1_1_1_3_merged.md`：已合并的 `1.1–1.3` 正文草稿（当前唯一有效版本）
+- `docs/report_sections_1_1_1_3_初稿.md`：已合并的 `1.1–1.3` 正文草稿（后续 A/B 内容统一并入，当前唯一有效版本）
 
 ### 3.2 场景文档
 - `docs/part_a/part_a_scenarios.md`：A1/A2 详细分析
@@ -118,4 +118,3 @@
 2. 补齐 `1.5 Simulation & Evaluation Setup`
 3. 补齐 `1.6 Mitigation Strategies`
 4. 最后统一压缩篇幅到 7–8 页双栏
-
