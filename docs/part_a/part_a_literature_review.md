@@ -47,7 +47,7 @@ Your Part A scenarios are contemporary, but the logic behind them depends on old
 
 - **1985-2013:** foundational occupancy-grid / probabilistic mapping ideas (free / occupied / unknown semantics), which are central to A2.
 - **2019-2021:** transparent-object depth failure and LiDAR glass detection (robotics/vision mechanisms relevant to A2).
-- **2022-2023:** modern AV multi-modal fusion and uncertainty-aware fusion framing.
+- **2022-2023:** modern AV multi-sensor fusion and uncertainty-aware fusion framing.
 - **2024-2025:** reflection-specific LiDAR/benchmark papers, transparent obstacle navigation methods, and current safety protocols / standards.
 
 This wider span avoids a common failure mode in course reports: citing only recent papers while leaving the representation assumptions (especially `unknown` vs `free`) ungrounded.
@@ -60,7 +60,7 @@ A glass-related corner case becomes a **safety** problem when the stack turns am
 
 That distinction matters for two reasons:
 
-1. It explains why these scenarios can survive naive multi-modal fusion.
+1. It explains why these scenarios can survive naive multi-sensor fusion.
 2. It aligns with the course objective of "red teaming" the AV stack at the level of system behavior, not single-module accuracy.
 
 The strongest external support for this framing comes from safety standards and test protocols:
@@ -133,7 +133,7 @@ This gives a rigorous basis for the A1 failure hypothesis (camera detects a vehi
 
 ### 3.3 Reflection as a benchmarked perception problem (not just anecdotal failure)
 
-The **3DRef** dataset and benchmark (2024) matters because it formalizes reflection detection as a multi-modal perception problem using RGB and LiDAR, rather than treating reflections as one-off qualitative artifacts.[L9]
+The **3DRef** dataset and benchmark (2024) matters because it formalizes reflection detection as a multi-sensor perception problem using RGB and LiDAR, rather than treating reflections as one-off qualitative artifacts.[L9]
 
 For this project, 3DRef is useful in two ways:
 
@@ -150,29 +150,29 @@ The paper **Detection of Ghost Targets for Automotive Radar in the Presence of M
 
 This is enough to justify a conservative A1 fusion narrative:
 - camera strong positive + LiDAR inconsistent support + radar weak/ambiguous return
-- should not be treated as equivalent to multi-modal confirmation of a real obstacle
+- should not be treated as equivalent to multi-sensor confirmation of a real obstacle
 
 ---
 
-## 4. Multi-Modal Fusion Literature: Why More Sensors Help in General but Can Still Fail Here
+## 4. Multi-Sensor Fusion Literature: Why More Sensors Help in General but Can Still Fail Here
 
-The assignment asks for a comparison between **camera-only** and **camera+LiDAR+radar** architectures. A strong literature review should therefore acknowledge both sides:
+The assignment asks for a comparison between **camera-only** and **multi-sensor** architectures. A strong literature review should therefore acknowledge both sides:
 
-- multi-modal fusion is genuinely effective in many settings,
+- multi-sensor fusion is genuinely effective in many settings,
 - but glass/reflection scenarios are precisely where the assumptions behind fusion can break.
 
 ### 4.1 What mainstream fusion literature establishes
 
-The modern AV fusion literature (e.g., surveys and BEV-based fusion frameworks) strongly supports the basic motivation for multi-modality:
+The modern AV fusion literature (e.g., surveys and BEV-based fusion frameworks) strongly supports the basic motivation for multi-sensor fusion:
 
 - cameras contribute dense semantics,
 - LiDAR contributes geometry,
 - radar contributes robustness under certain sensing conditions,
 - and fusion can improve detection and mapping performance on benchmark datasets.
 
-A 2022 survey on multi-modal sensor fusion for autonomous driving perception summarizes this design space and explicitly discusses issues such as noisy raw data, underutilized information, and cross-modal misalignment.[L5] Representative systems like **BEVFusion** (ICRA 2023; arXiv 2022) demonstrate how much performance and efficiency can be gained when camera and LiDAR are fused effectively in a shared representation.[L6]
+A 2022 survey on multi-sensor fusion for autonomous driving perception summarizes this design space and explicitly discusses issues such as noisy raw data, underutilized information, and cross-modal misalignment.[L5] Representative systems like **BEVFusion** (ICRA 2023; arXiv 2022) demonstrate how much performance and efficiency can be gained when camera and LiDAR are fused effectively in a shared representation.[L6]
 
-For the report, this matters because it prevents an unbalanced narrative. We are not arguing that multi-modal sensing is "bad"; we are arguing that **glass-related scenarios stress the reliability assumptions of fusion**, especially when disagreement is material-induced and persistent.
+For the report, this matters because it prevents an unbalanced narrative. We are not arguing that multi-sensor architectures are "bad"; we are arguing that **glass-related scenarios stress the reliability assumptions of fusion**, especially when disagreement is material-induced and persistent.
 
 ### 4.2 The specific gap Part A exploits: disagreement handling, not just feature fusion
 
@@ -182,7 +182,7 @@ Most fusion papers optimize average-case detection metrics and architectural eff
 
 This is closer to **runtime reliability / uncertainty allocation** than to benchmark mAP gains.
 
-A useful bridge reference here is **Uncertainty-Encoded Multi-Modal Fusion for Robust Object Detection in Autonomous Driving** (ECAI 2023), which argues that fusion schemes often ignore modality quality and explicitly introduces uncertainty into fusion weighting.[L12]
+A useful bridge reference here is **Uncertainty-Encoded Multi-sensor Fusion for Robust Object Detection in Autonomous Driving** (ECAI 2023), which argues that fusion schemes often ignore modality quality and explicitly introduces uncertainty into fusion weighting.[L12]
 
 That paper does not solve glass-specific corner cases. But it helps justify the design direction of Part A mitigations:
 
@@ -343,7 +343,7 @@ The goal here is to define a credible gap your project can actually address.
 
 - It characterizes sensor-level phenomena (glass, reflection, multipath, transparent obstacles).
 - It provides task-specific methods (reflection detection, glass detection, transparent obstacle detection).
-- It provides strong benchmark performance for multi-modal perception in average settings.
+- It provides strong benchmark performance for multi-sensor perception in average settings.
 - It provides safety motivation and protocol framing for false activations and controlled testing.
 
 ### 9.2 What is still missing for your Part A deliverable
@@ -352,7 +352,7 @@ What is often missing in one place (and what your Part A can deliver) is a compa
 
 1. **material-induced sensing ambiguity**,
 2. **fusion / occupancy design choices**,
-3. **camera-only vs multi-modal behavior**, and
+3. **camera-only vs multi-sensor behavior**, and
 4. **planning-level consequences and mitigation trade-offs**.
 
 That is an appropriate course-project contribution because it is analytic and reproducible, without claiming to solve the full scientific problem of reflection-robust autonomous driving.
@@ -384,7 +384,7 @@ The links below were selected to support Part A claims and were verified for exi
 
 ### AV fusion context and uncertainty-aware fusion
 
-- **[L5]** K. Huang et al., "Multi-modal Sensor Fusion for Auto Driving Perception: A Survey," arXiv 2022 (updated 2024).
+- **[L5]** K. Huang et al., "Multi-sensor Fusion for Auto Driving Perception: A Survey," arXiv 2022 (updated 2024).
   - https://arxiv.org/abs/2202.02703
   - Use in report: fusion taxonomy, common limitations (noise, misalignment, information utilization).
 
@@ -392,7 +392,7 @@ The links below were selected to support Part A claims and were verified for exi
   - https://arxiv.org/abs/2205.13542
   - Use in report: representative evidence that fusion works well in benchmark settings (important contrast point).
 
-- **[L12]** Y. Lou et al., "Uncertainty-Encoded Multi-Modal Fusion for Robust Object Detection in Autonomous Driving," ECAI 2023 (arXiv 2023).
+- **[L12]** Y. Lou et al., "Uncertainty-Encoded Multi-sensor Fusion for Robust Object Detection in Autonomous Driving," ECAI 2023 (arXiv 2023).
   - https://arxiv.org/abs/2307.16121
   - Use in report: uncertainty-aware fusion direction; supports contradiction-aware gating motivation.
 

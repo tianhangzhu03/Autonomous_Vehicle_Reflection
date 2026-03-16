@@ -20,7 +20,7 @@
 - 重点失效链：Reflection -> Perception inconsistency -> Fusion ghost track -> TTC underestimation -> Aggressive planning action。
 - 架构对比：
   - `camera-only`：语义误检更直接传递。
-  - `camera+LiDAR+radar`：理论可抑制误检，但在玻璃场景中 LiDAR/radar 也可能产生困难样本，若融合缺乏反证门控仍可失败。
+  - `multi-sensor`：理论可抑制误检，但在玻璃场景中 LiDAR/radar 也可能产生困难样本，若融合缺乏反证门控仍可失败。
 
 (Detail source: `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_scenarios.md`)
 
@@ -30,7 +30,7 @@
 - 重点失效链：Transparent barrier -> Depth ambiguity -> Occupancy/traversability error -> Unsafe path commitment。
 - 架构对比：
   - `camera-only`：依赖语义先验，泛化风险高。
-  - `camera+LiDAR+radar`：若未显式建模“透明体=深度不可靠域”，多模态也可能将空洞当 free。
+  - `multi-sensor`：若未显式建模“透明体=深度不可靠域”，多模态也可能将空洞当 free。
 
 (Detail source: `/Users/benjaminzth/Desktop/Courses/EE495AutonomousVehicles/Autonomous_Vehicle_Reflection/docs/part_a/part_a_scenarios.md`)
 
@@ -59,7 +59,7 @@
 ### 架构对比
 
 - `camera-only`：对信号语义和车道归属的视觉依赖更强，受眩光/遮挡影响更直接。
-- `camera+LiDAR+radar`：可通过运动证据部分抑制灾难性后果，但“信号语义 + lane attribution”仍主要依赖视觉，仍可能失败。
+- `multi-sensor`：可通过运动证据部分抑制灾难性后果，但“信号语义 + lane attribution”仍主要依赖视觉，仍可能失败。
 
 ### 主要安全后果
 
@@ -94,7 +94,7 @@
 ### 架构对比
 
 - `camera-only`：更易被信号抖动直接触发模式跳变。
-- `camera+LiDAR+radar`：能更稳定感知周车运动，但“信号开放 vs 运动危险”的语义冲突仍可能导致仲裁失败（卡死或过度急刹）。
+- `multi-sensor`：能更稳定感知周车运动，但“信号开放 vs 运动危险”的语义冲突仍可能导致仲裁失败（卡死或过度急刹）。
 
 ### 主要安全后果
 

@@ -4,7 +4,7 @@
 
 A lightweight CPU-only simulator was implemented under `sims/phenomenological_2d/` with three stack settings:
 - `camera_only`
-- `multimodal_permissive`
+- `multi_sensor_permissive`
 - `mitigation`
 
 Core modules:
@@ -41,10 +41,10 @@ Outputs:
 
 ## 3. Current Quantitative Results (40 seeds)
 
-- A1 PBS (multi-modal permissive vs mitigation): `2.002` -> `1.220` (reduction `39.1%`).
-- A2 EVR (multi-modal permissive vs mitigation): `0.942` -> `0.098` (reduction `89.6%`).
-- A2 collision rate: camera-only `1.000`, multi-modal permissive `1.000`, mitigation `0.000`.
-- A2 travel time (s): camera-only `6.11`, multi-modal permissive `6.11`, mitigation `19.89`.
+- A1 PBS (multi-sensor permissive vs mitigation): `2.002` -> `1.220` (reduction `39.1%`).
+- A2 EVR (multi-sensor permissive vs mitigation): `0.942` -> `0.098` (reduction `89.6%`).
+- A2 collision rate: camera-only `1.000`, multi-sensor permissive `1.000`, mitigation `0.000`.
+- A2 travel time (s): camera-only `6.11`, multi-sensor permissive `6.11`, mitigation `19.89`.
 
 ## 4. Interpretation for Section 4/5
 

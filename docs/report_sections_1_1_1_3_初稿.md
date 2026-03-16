@@ -1,8 +1,8 @@
 # 1.1 Abstract
 
-This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-glass free-space misclassification), B1 (reversible-lane signal misread and lane-attribution error), and B2 (transition-window mode oscillation under unsynchronized lane-control signals). For each scenario, we analyze the failure chain from perception/rule interpretation to prediction, planning, and control, and compare camera-only against camera+LiDAR+radar architectures.
+This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-glass free-space misclassification), B1 (reversible-lane signal misread and lane-attribution error), and B2 (transition-window mode oscillation under unsynchronized lane-control signals). For each scenario, we analyze the failure chain from perception/rule interpretation to prediction, planning, and control, and compare camera-only against multi-sensor architectures.
 
-Three findings are consistent across scenarios. First, unsafe behavior is usually caused by premature commitment under contradiction, rather than by a single detector error. Second, multi-modal sensing improves average robustness but does not guarantee safety when fusion and arbitration do not explicitly represent uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces: contradiction-aware fusion, conservative unknown handling, robust lane attribution, and stable transition-state arbitration with hysteresis and dwell-time constraints.
+Three findings are consistent across scenarios. First, unsafe behavior is usually caused by premature commitment under contradiction, rather than by a single detector error. Second, multi-sensor architectures improves average robustness but does not guarantee safety when fusion and arbitration do not explicitly represent uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces: contradiction-aware fusion, conservative unknown handling, robust lane attribution, and stable transition-state arbitration with hysteresis and dwell-time constraints.
 
 This report contributes a unified failure-analysis template across all four scenarios, an architecture-level safety comparison, and an implementation-oriented mitigation framework aligned with corner-case validation.
 
@@ -14,7 +14,7 @@ Autonomous driving performance has improved substantially on benchmark tasks, ye
 
 This project targets four representative corner cases in two risk families. A1 and A2 capture physics-driven inconsistency caused by glass (reflection and transparency). B1 and B2 capture rule-driven inconsistency in reversible-lane operation (signal semantics/lane attribution and transition-window arbitration). This design is intentional: together, the scenarios cover both overreaction failures (false obstacle commitment, false emergency response) and underreaction failures (false free-space commitment, delayed conflict resolution).
 
-A core project objective is to compare two architecture classes: camera-only and camera+LiDAR+radar. The comparison is framed as a safety-logic question, not a pure accuracy question. Camera-only pipelines are generally more exposed to semantic ambiguity under glare, occlusion, and reflection. Multi-modal stacks add geometric and motion evidence [3], but still fail when contradictory observations are fused as confirmation or when rule arbitration is unstable. Therefore, the key question is whether the full stack handles contradiction before issuing control actions.
+A core project objective is to compare two architecture classes: camera-only and multi-sensor. The comparison is framed as a safety-logic question, not a pure accuracy question. Camera-only pipelines are generally more exposed to semantic ambiguity under glare, occlusion, and reflection. Multi-sensor stacks add geometric and motion evidence [3], but still fail when contradictory observations are fused as confirmation or when rule arbitration is unstable. Therefore, the key question is whether the full stack handles contradiction before issuing control actions.
 
 Within this scope, the paper makes three practical contributions. First, it introduces a scenario-consistent failure-chain decomposition (perception/rule interpretation -> prediction or arbitration -> planning/control). Second, it integrates sensing literature and transportation standards into one evidence base for both physical and rule-driven corner cases. Third, it proposes mitigation at the module interfaces where escalation actually occurs.
 
@@ -52,7 +52,7 @@ Across A1–B2, one pattern is consistent: the dominant risk is premature commit
 
 [2] Euro NCAP, "Test Protocol—Crash Avoidance—Frontal Collisions," Version 11, 2025.
 
-[3] K. Huang, C. Fu, and X. Wang, "Multi-modal Sensor Fusion for Auto Driving Perception: A Survey," arXiv:2202.02703, 2022.
+[3] K. Huang, C. Fu, and X. Wang, "Multi-sensor Fusion for Auto Driving Perception: A Survey," arXiv:2202.02703, 2022.
 
 [4] X. Zhao and S. Schwertfeger, "3DRef: 3D Dataset and Benchmark for Reflection Detection in RGB and Lidar Data," arXiv:2403.06538, 2024.
 

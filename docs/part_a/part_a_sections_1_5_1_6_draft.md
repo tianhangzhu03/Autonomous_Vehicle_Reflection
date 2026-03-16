@@ -69,7 +69,7 @@ Three stacks are evaluated under identical route geometry, traffic seeds, and co
 | Stack | Definition | Expected failure mode |
 |---|---|---|
 | Baseline 1 (`camera-only`) | Pure visual semantics; no independent depth validation | A1 semantic over-commitment, A2 traversability over-commitment |
-| Baseline 2 (`multi-modal permissive`) | Camera+LiDAR+radar with permissive fusion/occupancy defaults | A1 weak auxiliary traces treated as corroboration; A2 missing depth folded into free-space |
+| Baseline 2 (`multi-sensor permissive`) | Multi-sensor stack with permissive fusion/occupancy defaults | A1 weak auxiliary traces treated as corroboration; A2 missing depth folded into free-space |
 | Mitigation (`contradiction-aware`) | Contradiction-aware fusion + conservative unknown handling | Delayed commitment under conflict; reduced phantom braking and barrier penetration |
 
 Each stack is run on both scenarios with multiple seeds (minimum 12 per cell recommended) to support stable comparative trends.

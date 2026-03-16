@@ -21,9 +21,9 @@
 \begin{document}
 
 \begin{abstract}
-This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-garage-door false free-space commitment), B1 (reversible-lane signal misread and lane-attribution error), and B2 (transition-window mode oscillation under unsynchronized lane-control signals). For each scenario, we analyze the failure chain from perception or rule interpretation to planning and control, and compare camera-only against camera+LiDAR+radar architectures.
+This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-garage-door false free-space commitment), B1 (reversible-lane signal misread and lane-attribution error), and B2 (transition-window mode oscillation under unsynchronized lane-control signals). For each scenario, we analyze the failure chain from perception or rule interpretation to planning and control, and compare camera-only against multi-sensor architectures.
 
-Three findings are consistent across scenarios. First, unsafe behavior is mainly caused by premature commitment under contradiction rather than isolated detector error. Second, multi-modal sensing improves average robustness but does not guarantee safety if fusion and arbitration layers do not explicitly model uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces, including contradiction-aware fusion, conservative unknown handling, robust lane attribution, and transition-state arbitration constraints.
+Three findings are consistent across scenarios. First, unsafe behavior is mainly caused by premature commitment under contradiction rather than isolated detector error. Second, multi-sensor architectures improve average robustness but do not guarantee safety when fusion and arbitration layers do not explicitly model uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces, including contradiction-aware fusion, conservative unknown handling, robust lane attribution, and transition-state arbitration constraints.
 
 Team contribution statement: Member A (Benjamin Zhu) is responsible for Part A (A1/A2), including literature synthesis and scenario-level analysis of reflection and transparent-glass failures. Member B is responsible for Part B (B1/B2), including reversible-lane scenario design and analysis. Final integration and presentation are completed jointly.
 \end{abstract}
@@ -32,14 +32,46 @@ Team contribution statement: Member A (Benjamin Zhu) is responsible for Part A (
 
 \section{Introduction}
 
-Autonomous driving performance has improved substantially on benchmark tasks, yet deployment risk remains dominated by long-tail conditions where sensing and traffic-control evidence become inconsistent. These failures are difficult to identify with average-case metrics because they emerge from cross-module coupling: a plausible perception hypothesis can be over-trusted by fusion, temporary rule conflicts can destabilize mode arbitration, and local uncertainty can escalate into safety-critical control interventions.
+Autonomous driving performance has improved substantially on benchmark tasks, yet deployment risk remains dominated by long-tail conditions where sensing and traffic-control evidence become inconsistent. These failures are hard to capture with average-case metrics because they emerge from cross-module coupling: a plausible perception hypothesis can be over-trusted by fusion, temporary rule conflicts can destabilize mode arbitration, and local uncertainty can escalate into safety-critical control interventions.
 
 This project targets four representative corner cases in two risk families. A1 and A2 capture physics-driven inconsistency caused by reflection and transparency effects of glass. B1 and B2 capture rule-driven inconsistency in reversible-lane operation. This design intentionally covers both overreaction failures (false obstacle commitment and unnecessary emergency response) and underreaction failures (false free-space commitment and delayed conflict resolution).
 
-A core objective is to compare two architecture classes: camera-only and camera+LiDAR+radar. The comparison is framed as a safety-logic problem rather than pure detection accuracy. Camera-only stacks are generally more exposed to semantic ambiguity under glare, occlusion, and reflection. Multi-modal stacks add geometric and motion evidence \cite{huang2022survey}, but can still fail when contradictory observations are fused as confirmation or when rule arbitration is unstable.
+A core objective is to compare two architecture classes: camera-only and multi-sensor. The comparison is framed as a safety-logic problem rather than pure detection accuracy. Camera-only stacks are generally more exposed to semantic ambiguity under glare, occlusion, and reflection. Multi-sensor stacks add geometric and motion evidence \cite{huang2022survey}, but they can still fail when contradictory observations are fused as confirmation or when rule arbitration is unstable.
+
+\subsection{Real-World Motivation: Reported Cases Aligned with A1--B2}
+The four project scenarios are grounded in reported real-world safety events rather than synthetic thought experiments.
+
+\textbf{A1-aligned case (ghost-target/phantom-braking style failure):} ABC7 reported and published surveillance video of an eight-car Bay Bridge crash in which a Tesla, running in ``self-driving'' mode, abruptly braked; CHP reported minor injuries to nine adults and one child \cite{abc7baybridge2023}. At fleet scale, NHTSA opened PE22-002 after receiving 354 complaints of unexpected highway-speed brake activation, commonly described as ``phantom braking'' \cite{nhtsape22002}. Together, these reports align with A1 risk: high-authority braking can be committed without confirmed physical threat.
+
+\textbf{A2-aligned case (barrier interaction under weak geometric confirmation):} In Recall 25E-034, Waymo reported collisions with gates, chains, and similar roadway barriers, and NHTSA recorded multiple incidents in this category in the recall chronology \cite{waymo2025recall}. This is aligned with A2 logic: when traversability inference over-trusts appearance and under-weights geometric uncertainty near boundary objects, the system can commit to unsafe forward motion.
+
+\textbf{B1-aligned case (lane-direction interpretation failure):} ABC7 reported a Waymo vehicle driving into oncoming traffic in Tempe, Arizona, and the onboard passenger intervened to steer away \cite{abc7tempe2024}. This maps to B1 lane-direction and lane-attribution failure under real traffic operation.
+
+\textbf{B2-aligned case (state instability and traffic-control conflict):} AP reported that during a San Francisco power outage, Waymo vehicles stopped in intersections and blocked roads while attempting to operate under degraded control context \cite{ap2025waymopower}. This aligns with B2, where control-state arbitration under conflicting or degraded traffic-control cues can produce oscillation, deadlock, or blocking behavior.
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}[t]{0.38\textwidth}
+    \vspace{0pt}
+    \centering
+    \includegraphics[width=\linewidth]{real_world_cases/images/A1_abc7_baybridge.jpg}
+
+    \vspace{4pt}
+
+    \includegraphics[width=\linewidth]{real_world_cases/images/B2_user.jpg}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.58\textwidth}
+    \vspace{8pt}
+    \centering
+    \includegraphics[width=\linewidth]{real_world_cases/images/A2.jpg}
+  \end{minipage}
+  \caption{Real-world AV evidence snapshots motivating A1, A2, and B2. Left column: Bay Bridge multi-car crash context linked to abrupt ``self-driving'' braking (A1, top) \cite{abc7baybridge2023} and user-selected B2 image from a Waymo blocking/degraded-control context in San Francisco (B2, bottom) \cite{ap2025waymopower}. Right column: NHTSA/Waymo Recall 25E-034 chronology on gate/chain barrier collisions (A2), with the barrier-collision statement explicitly highlighted \cite{waymo2025recall}. B1 is cited as an AV wrong-way lane-direction incident \cite{abc7tempe2024} and intentionally kept text-only per presentation preference.}
+  \Description{Three-panel evidence figure in two columns. Left column stacks the Bay Bridge abrupt-braking crash scene and a user-provided B2 Waymo traffic-context photo. Right column shows an annotated excerpt from Waymo recall chronology with the gates/chains collision statement circled.}
+  \label{fig:real_world_motivation}
+\end{figure*}
 
 \section{Literature Review}
-Regulatory and protocol documents establish that false or context-inappropriate activation is a safety issue, not merely a comfort issue. FMVSS No. 127 explicitly introduces false-activation considerations in AEB behavior \cite{nhtsa2024}. Euro NCAP frontal crash-avoidance protocol similarly constrains test conditions to preserve reliability and repeatability \cite{euroncap2025}. These sources justify a corner-case perspective: standardized tests are necessary, but they do not exhaust real operational combinations that produce contradiction across sensing and rule layers.
+Regulatory and protocol documents establish that false or context-inappropriate activation is a safety issue, not merely a comfort issue. FMVSS No. 127 explicitly introduces false-activation considerations in AEB behavior \cite{nhtsa2024}. The Euro NCAP frontal crash-avoidance protocol likewise constrains test conditions to preserve reliability and repeatability \cite{euroncap2025}. These sources justify a corner-case perspective: standardized tests are necessary, but they do not exhaust operational combinations that produce contradiction across sensing and rule layers.
 
 For reflection and transparency scenarios (A1/A2), recent work consistently shows that glass decouples appearance from geometry. Reflection-focused studies report that reflective surfaces can yield stable visual hypotheses while geometric support remains frame-dependent or inconsistent \cite{zhao2024ref,li2024plane}. Transparent-obstacle studies show a complementary failure mode: missing or distorted depth near transparent boundaries can corrupt occupancy and traversability when uncertainty is collapsed too early \cite{tibebu2021glass,weerakoon2024topgn}. Radar multipath studies add further risk for A1, where weak radar responses can reinforce ghost hypotheses instead of rejecting them \cite{zheng2024radar}.
 
@@ -49,11 +81,11 @@ For reversible-lane scenarios (B1/B2), transportation standards and operational 
 
 \subsection{Part A: Glass-Induced Unsafe Scenarios (A1, A2)}
 
-Part A analyzes two corner cases driven by the same physical mechanism, namely the decoupling between appearance and geometry around reflective or transparent surfaces, but with opposite decision-level failures. A1 is \textit{False Positive Trajectory Commitment under Phantom Obstacles}, while A2 is false free-space commitment under transparent barriers.
+Part A analyzes two corner cases driven by the same physical mechanism, namely the decoupling between appearance and geometry around reflective or transparent surfaces, but with opposite decision-level failures. A1 is \textit{False Positive Trajectory Commitment under Phantom Obstacles}, while A2 is \textit{False Free-Space Commitment under Transparent Barriers}.
 
 \subsubsection{A1: Ghost Vehicle from Reflective Facades}
 
-A1 occurs when a real vehicle outside the ego lane is reflected by a facade and appears as a forward obstacle candidate in the camera view. Reflection-aware LiDAR studies report unstable and geometry-inconsistent support near reflective planes \cite{zhao2024ref,li2024plane}. Radar under multipath may further contribute ambiguous weak-positive evidence instead of a strict veto \cite{zheng2024radar}. Consequently, the evidence profile is rarely a clean camera-positive versus geometry-negative split; it is more often dominant visual evidence reinforced by ambiguous auxiliary signals, as illustrated in Figure~\ref{fig:a1}.
+A1 occurs when a real vehicle outside the ego lane is reflected by a facade and appears as a forward obstacle candidate in the camera view. Reflection-aware LiDAR studies report unstable and geometry-inconsistent support near reflective planes \cite{zhao2024ref,li2024plane}. Radar under multipath may further contribute ambiguous weak-positive evidence instead of a strict veto \cite{zheng2024radar}. Consequently, the evidence profile is rarely a clean camera-positive versus geometry-negative split; it more often appears as dominant visual evidence reinforced by ambiguous auxiliary signals, as illustrated in Figure~\ref{fig:a1}.
 
 Let $\mathcal{M}=\{\mathrm{cam},\mathrm{lid},\mathrm{rad}\}$ and let $S_{\mathrm{track}}^{(i)}(t)$ denote confidence for track $i$ at time $t$. A permissive baseline uses additive fusion:
 \begin{equation}
@@ -67,7 +99,7 @@ with promotion when $S_{\mathrm{track}}^{(i)}(t)\ge \tau_{\mathrm{conf}}$. A con
 \label{eq:a1_penalized}
 \end{equation}
 
-Without explicit contradiction penalty, both camera-only and multi-modal pipelines remain failure-prone in A1.
+Without explicit contradiction penalty, both camera-only and multi-sensor pipelines remain failure-prone in A1.
 
 \begin{figure}[H]
   \centering
@@ -79,7 +111,7 @@ Without explicit contradiction penalty, both camera-only and multi-modal pipelin
 
 \subsubsection{A2: Transparent Garage Door and False Free-Space Commitment}
 
-A2 is instantiated at an underground parking garage exit secured by a closed transparent glass door. This setting naturally combines ramp geometry and strong illumination transition from dim interior to bright exterior. The camera observes a visually continuous outdoor street scene through glass, while LiDAR can pass through or scatter at the transparent medium, creating a depth void at the true boundary \cite{tibebu2021glass,weerakoon2024topgn}.
+A2 is instantiated at an underground parking garage exit secured by a closed transparent glass door. This setting combines ramp geometry with a strong illumination transition from dim interior to bright exterior. The camera observes a visually continuous outdoor street scene through glass, while LiDAR can pass through or scatter at the transparent medium, creating a depth void at the true boundary \cite{tibebu2021glass,weerakoon2024topgn}.
 
 \begin{figure}[t]
   \centering
@@ -114,7 +146,32 @@ with large $\kappa$ despite missing geometric confirmation.
 
 \subsection{Part A: Phenomenological Simulation, Metrics, and Experimental Findings}
 
-Part A uses a lightweight CPU-only 2D simulator (\texttt{NumPy}/\texttt{SciPy}) to isolate decision logic under contradictory evidence rather than photorealistic rendering. For each seed, both A1 and A2 are instantiated with domain randomization over geometry and sensing conditions (door position, transparency, depth-void span, initial speed, slope, and noise scale), then evaluated under three architectures: \textit{camera-only}, \textit{multimodal permissive}, and \textit{mitigation}. The evidential-map abstraction follows occupancy-grid and unknown-preserving mapping principles \cite{elfes2013,ufomap2020}.
+Part A uses a lightweight CPU-only 2D closed-loop simulator (\texttt{NumPy}/\texttt{SciPy}) to isolate the core failure mechanism: unsafe commitment under contradictory evidence. The implementation intentionally does not emulate full rendering optics; instead, it directly parameterizes perception evidence at the fusion-planning interface. This design is computationally efficient and preserves controllability of corner-case factors.
+
+The simulator runs at $\Delta t=0.1\,\mathrm{s}$ with longitudinal state $[x_t,v_t]$. At each step, the planner outputs $v_t^\star$, then a first-order controller and grade compensation update acceleration and motion:
+\begin{equation}
+\begin{aligned}
+a_t^{\mathrm{cmd}} &= \mathrm{clip}\!\left(\frac{v_t^\star-v_t}{\tau}, a_{\min}, a_{\max}\right),\\
+a_t &= \mathrm{clip}\!\left(a_t^{\mathrm{cmd}}-g\cdot \theta_{\mathrm{slope}}, a_{\min}, a_{\max}\right),\\
+x_{t+1} &= x_t + v_t\Delta t + \tfrac{1}{2}a_t\Delta t^2,\quad
+v_{t+1} = \max(0,\;v_t+a_t\Delta t).
+\end{aligned}
+\label{eq:sim_dyn}
+\end{equation}
+The saturation bounds are mode-specific (e.g., mitigation uses stronger braking limits under envelope trigger), so behavior differences are generated by decision policy rather than post-hoc filtering.
+
+Domain randomization is applied per seed before rollout. For A1, randomized factors include reflection strength ($0.72\!-\!0.98$), observation noise scale ($0.70\!-\!1.55$), initial speed ($7.0\!-\!9.5\,\mathrm{m/s}$), slope ($-0.05\!-\!0.05$), ghost location, and visibility window. For A2, randomized factors include transparency ($0.72\!-\!0.98$), noise scale ($0.75\!-\!1.60$), initial speed ($2.0\!-\!5.0\,\mathrm{m/s}$), slope ($-0.06\!-\!0.06$), door column, cell size, and depth-void span ($5.0\!-\!10.0\,\mathrm{m}$). The evidential map follows unknown-preserving occupancy mapping \cite{elfes2013,ufomap2020}.
+
+The A1 evidence generator enforces the key corner-case profile: camera confidence is high and persistent when the ghost is in view, while LiDAR and radar return weak but nonzero ambiguous support. Thus, the system rarely sees a clean visual-positive versus geometric-negative split; it sees a dominant visual hypothesis with noisy auxiliary traces. Virtual TTC is computed from ghost range and ego speed and is used only as an internal trigger variable for braking logic.
+
+The A2 evidence generator uses a Dempster-Shafer grid (three channels per cell: $m(O)$, $m(F)$, $m(\Omega)$). A depth-void process is injected near the door boundary with probability
+\begin{equation}
+p_{\mathrm{void}}=\mathrm{clip}\!\left(0.20 + 0.75\,\alpha\,\rho,\;0,\;1\right),
+\label{eq:pvoid}
+\end{equation}
+where $\alpha$ is door transparency and $\rho$ is normalized proximity to the door. Under a void event, LiDAR occupancy support is suppressed to sparse low values while camera free-space prior remains high, reproducing the ``visual continuity + depth failure'' pattern. Collision is declared when the ego crosses the door plane with residual speed $>0.35\,\mathrm{m/s}$.
+
+To ensure fair stack comparison, each seed samples one A1 case and one A2 case once, then reuses these exact cases across all three stacks (\textit{camera-only}, \textit{multi-sensor permissive}, \textit{mitigation}). Scenario-specific noise seeds are also fixed across stacks. Therefore, inter-stack differences reflect policy behavior under identical randomized conditions, not different random scenes.
 
 For A1, we inject a persistent camera-dominant ghost hypothesis with weak or ambiguous auxiliary support. Safety severity is measured by Phantom Braking Severity (PBS):
 \begin{equation}
@@ -125,7 +182,7 @@ PBS &= \max_{t \in [t_0, t_{\text{end}}]}
 \end{aligned}
 \label{eq:pbs}
 \end{equation}
-Across 100 randomized seeds, A1 PBS is $1.605$ (\textit{camera-only}), $1.933$ (\textit{multimodal permissive}), and $1.188$ (\textit{mitigation}), i.e., a $38.5\%$ reduction from permissive multi-modal to mitigation.
+Across 100 randomized seeds, A1 PBS is $1.605$ (\textit{camera-only}), $1.933$ (\textit{multi-sensor permissive}), and $1.188$ (\textit{mitigation}), i.e., a $38.5\%$ reduction from multi-sensor permissive to mitigation.
 
 For A2, we use a Dempster-Shafer evidential grid and inject transparent-boundary depth voids while preserving strong visual free-space continuity. Evidential collapse is measured by EVR:
 \begin{equation}
@@ -135,17 +192,19 @@ EVR =
 m_c^{t_{\text{cross}}}(F).
 \label{eq:evr}
 \end{equation}
-The A2 results are intentionally extreme and informative: collision rate is $1.000$ for both \textit{camera-only} and \textit{multimodal permissive}, and $0.000$ for \textit{mitigation}; EVR decreases from $0.942$ (permissive multi-modal) to $0.104$ (mitigation). This should be interpreted as a system-level architecture finding: without explicit contradiction handling, semantic priors without robust geometric verification inevitably commit to false free-space under transparent barriers.
+If the door is not physically crossed in a run, $t_{\text{cross}}$ is replaced by the nearest approach index to keep EVR well-defined across success and failure trajectories.
 
-The three-stack comparison is also consistent with representative fusion families in the literature, including radar-camera fusion, transformer-based end-to-end fusion, and unified BEV fusion \cite{centerfusion2020,transfuser2021,bevfusion2022}. We additionally align the uncertainty-aware perspective with recent uncertainty-encoded fusion work \cite{umoe2023}. While this section does not train on large corpora, scenario parameters and modality assumptions are compatible with modern multi-sensor benchmarks such as nuScenes and Argoverse 2 \cite{caesar2020nuscenes,wilson2023argoverse2}.
+The A2 results are extreme by design and highly informative: collision rate is $1.000$ for both \textit{camera-only} and \textit{multi-sensor permissive}, and $0.000$ for \textit{mitigation}; EVR decreases from $0.942$ (multi-sensor permissive) to $0.104$ (mitigation). This should be interpreted as an architecture-level finding: without explicit contradiction handling, semantic priors without robust geometric verification inevitably commit to false free-space under transparent barriers.
 
-Statistical significance is strong despite the deterministic-looking means. For A1 PBS (multimodal permissive vs mitigation), Mann-Whitney yields $p=1.08\times 10^{-13}$; for A2 EVR, $p=2.56\times 10^{-34}$; and for A2 collision rate, $p=3.52\times 10^{-45}$. Thus, the trends are not sampling artifacts of the 100-seed randomized protocol.
+The three-stack comparison is consistent with representative fusion families in the literature, including radar-camera fusion, transformer-based end-to-end fusion, and unified BEV fusion \cite{centerfusion2020,transfuser2021,bevfusion2022}. We additionally align the uncertainty-aware perspective with recent uncertainty-encoded fusion work \cite{umoe2023}. While this section does not train on large corpora, scenario parameters and modality assumptions are compatible with modern multi-sensor benchmarks such as nuScenes and Argoverse 2 \cite{caesar2020nuscenes,wilson2023argoverse2}.
+
+Statistical significance is strong despite the deterministic-looking means. For A1 PBS (multi-sensor permissive vs mitigation), Mann-Whitney yields $p=1.08\times 10^{-13}$; for A2 EVR, $p=2.56\times 10^{-34}$; and for A2 collision rate, $p=3.52\times 10^{-45}$. Thus, the trends are not sampling artifacts of the 100-seed randomized protocol.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{../../results/part_a_simulation_100/a2_three_modes_timeline.png}
   \caption{A2 compact timeline (single-column). Top: speed profile; bottom: unknown evidential mass $m(\Omega)$ near the transparent boundary. Permissive baselines keep nominal motion under unresolved uncertainty and collide, whereas mitigation preserves uncertainty and enforces envelope-triggered deceleration to full stop.}
-  \Description{Two-panel time-series plot for A2 under camera-only, multimodal permissive, and mitigation. The top panel shows speed over time; the bottom panel shows unknown evidential mass m(Omega). Baselines continue moving and collide; mitigation slows and stops under high uncertainty.}
+  \Description{Two-panel time-series plot for A2 under camera-only, multi-sensor permissive, and mitigation. The top panel shows speed over time; the bottom panel shows unknown evidential mass m(Omega). Baselines continue moving and collide; mitigation slows and stops under high uncertainty.}
   \label{fig:a2_timeline}
 \end{figure}
 
@@ -161,7 +220,7 @@ Statistical significance is strong despite the deterministic-looking means. For 
     Architecture & A1 PBS $\downarrow$ & A2 EVR $\downarrow$ & A2 Coll. $\downarrow$ & A2 $T_{\text{travel}}$ (s) $\uparrow$ \\
     \midrule
     Camera-only & 1.605 & 0.942 & 1.000 & 6.094 \\
-    Multi-modal perm. & 1.933 & 0.942 & 1.000 & 6.094 \\
+    Multi-sensor perm. & 1.933 & 0.942 & 1.000 & 6.094 \\
     Mitigation (ours) & 1.188 & 0.104 & 0.000 & 19.626 \\
     \bottomrule
   \end{tabular}
@@ -175,13 +234,13 @@ Statistical significance is strong despite the deterministic-looking means. For 
 
 \subsection{Part A: Mitigation Summary and Philosophy}
 
-The core mitigation theme is a transition from \textit{semantic trust} to \textit{epistemic uncertainty management}. Section 4 shows that permissive architectures fail when contradictory evidence is forced into deterministic states. The proposed framework therefore intervenes at the fusion-to-planning interface \cite{huang2022survey}, treating unresolved cross-modal contradiction as a primary trigger for safety-critical fallback rather than as nuisance noise.
+The core mitigation theme is a transition from \textit{semantic trust} to \textit{epistemic uncertainty management}. Section~4 shows that permissive architectures fail when contradictory evidence is forced into deterministic states. The proposed framework therefore intervenes at the fusion-to-planning interface \cite{huang2022survey}, treating unresolved cross-modal contradiction as a primary trigger for safety-critical fallback rather than as nuisance noise.
 
 \subsubsection{A1 Mitigation: Variance-Penalized Fusion and Temporal Parallax}
 
 To mitigate false-positive trajectory commitment near reflective facades (A1), the stack must break camera semantic dominance.
 
-\textbf{Theoretical Prototype (2D Simulation):} We replace additive fusion with contradiction-aware evidential fusion (Eq.~\ref{eq:a1_penalized}), where cross-modal variance is explicitly penalized. In the 100-seed study, this reduces A1 PBS by $38.5\%$ versus the multi-modal permissive baseline.
+\textbf{Theoretical Prototype (2D Simulation):} We replace additive fusion with contradiction-aware evidential fusion (Eq.~\ref{eq:a1_penalized}), where cross-modal variance is explicitly penalized. In the 100-seed study, this reduces A1 PBS by $38.5\%$ versus the multi-sensor permissive baseline.
 
 \textbf{Multi-dimensional Real-World Extension:} In 3D deployment, spatial variance alone is insufficient because radar multipath can mimic geometric corroboration \cite{zheng2024radar}. A robust A1 mitigation should be extended along temporal and physical dimensions:
 \begin{itemize}
@@ -252,7 +311,7 @@ Finally, future validation should expand beyond 2D kinematics toward higher-fide
 
 \section{Conclusion}
 
-Across A1--B2, the dominant hazard is premature commitment under unresolved contradiction. The architecture-level comparison should therefore be evaluated as permissive commitment versus contradiction-aware commitment, rather than sensor-count comparison alone. Final conclusions and limitations for Part B will be merged after teammate integration.
+Across A1--B2, the dominant hazard is premature commitment under unresolved contradiction. The architecture-level comparison should therefore be evaluated as permissive commitment versus contradiction-aware commitment, rather than as sensor-count comparison alone. Final conclusions and limitations for Part B will be merged after teammate integration.
 
 \begin{thebibliography}{28}
 
@@ -266,10 +325,40 @@ Euro NCAP.
 \newblock 2025.
 \newblock \textit{Test Protocol: Crash Avoidance, Frontal Collisions, Version 11}.
 
+\bibitem{abc7baybridge2023}
+ABC7 News (KGO-TV San Francisco).
+\newblock 2023.
+\newblock \textit{New Video of Bay Bridge 8-Car Crash Shows Tesla Abruptly Braking in ``Self-Driving'' Mode}.
+\newblock \url{https://abc7news.com/post/tesla-sf-bay-bridge-crash-8-car-self-driving-video/12686428/}.
+
+\bibitem{nhtsape22002}
+National Highway Traffic Safety Administration (ODI).
+\newblock 2022.
+\newblock \textit{ODI Resume: PE 22-002, Unexpected Brake Activation (Tesla Model 3/Y)}.
+\newblock \url{https://static.nhtsa.gov/odi/inv/2022/INOA-PE22002-9179.PDF}.
+
+\bibitem{waymo2025recall}
+National Highway Traffic Safety Administration and Waymo LLC.
+\newblock 2025.
+\newblock \textit{Part 573 Safety Recall Report, 25E-034 (5th Generation ADS Software)}.
+\newblock \url{https://static.nhtsa.gov/odi/rcl/2025/RCLRPT-25E034-2471.PDF}.
+
+\bibitem{abc7tempe2024}
+ABC7 Chicago.
+\newblock 2024.
+\newblock \textit{Self-Driving Waymo Car Goes Wrong Way into Oncoming Traffic in Arizona}.
+\newblock \url{https://abc7chicago.com/post/wrong-waymo-driverless-car-goes-oncoming-traffic-tempe-arizona/15238556/}.
+
+\bibitem{ap2025waymopower}
+Associated Press.
+\newblock 2025.
+\newblock \textit{Waymos Blocked Roads and Caused Chaos During San Francisco Power Outage}.
+\newblock \url{https://apnews.com/article/81e6a00aa2be6b804fe0bdfbcf07401f}.
+
 \bibitem{huang2022survey}
 K. Huang, C. Fu, and X. Wang.
 \newblock 2022.
-\newblock Multi-modal Sensor Fusion for Auto Driving Perception: A Survey.
+\newblock Multi-sensor Fusion for Auto Driving Perception: A Survey.
 \newblock \textit{arXiv preprint arXiv:2202.02703}.
 
 \bibitem{zhao2024ref}
@@ -380,7 +469,7 @@ R. Nabati and H. Qi.
 \bibitem{transfuser2021}
 A. Prakash, K. Chitta, and A. Geiger.
 \newblock 2021.
-\newblock Multi-Modal Fusion Transformer for End-to-End Autonomous Driving.
+\newblock Multi-sensor Fusion Transformer for End-to-End Autonomous Driving.
 \newblock \textit{arXiv preprint arXiv:2104.09224}.
 
 \bibitem{bevfusion2022}
@@ -392,13 +481,13 @@ Z. Liu et al.
 \bibitem{umoe2023}
 Y. Lou, Q. Song, Q. Xu, R. Tan, and J. Wang.
 \newblock 2023.
-\newblock Uncertainty-Encoded Multi-Modal Fusion for Robust Object Detection in Autonomous Driving.
+\newblock Uncertainty-Encoded Multi-sensor Fusion for Robust Object Detection in Autonomous Driving.
 \newblock \textit{arXiv preprint arXiv:2307.16121}.
 
 \bibitem{caesar2020nuscenes}
 H. Caesar et al.
 \newblock 2020.
-\newblock nuScenes: A Multimodal Dataset for Autonomous Driving.
+\newblock nuScenes: A Multi-sensor Dataset for Autonomous Driving.
 \newblock In \textit{Proc. IEEE/CVF CVPR}.
 
 \bibitem{wilson2023argoverse2}

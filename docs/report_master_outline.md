@@ -11,7 +11,7 @@
 ### 1 Introduction
 - Why corner cases matter for AV safety
 - Scope of this project (2 glass/reflection + 2 non-glass)
-- Camera-only vs camera+LiDAR+radar comparison scope
+- Camera-only vs multi-sensor comparison scope
 - Paper organization
 
 ### 2 Literature Review
@@ -25,12 +25,12 @@
 #### 3.1 Part A — Glass/Reflection Scenarios (Owner: You)
 - A1: Glass facade ghost vehicle
 - A2: Transparent glass barrier free-space error
-- For each scenario: setup, expected safe behavior, failure chain, camera-only vs camera+LiDAR+radar comparison, qualitative risk, mitigation hooks
+- For each scenario: setup, expected safe behavior, failure chain, camera-only vs multi-sensor comparison, qualitative risk, mitigation hooks
 
 #### 3.2 Part B — Reversible-Lane Scenarios (Owner: Teammate)
 - B1: Reversible-lane entrance lane-control signal misread / lane attribution error
 - B2: Transition-window state-machine failure under unsynchronized signals and inconsistent human behavior
-- For each scenario: setup, expected safe behavior, failure chain, camera-only vs camera+LiDAR+radar comparison, qualitative risk, mitigation hooks
+- For each scenario: setup, expected safe behavior, failure chain, camera-only vs multi-sensor comparison, qualitative risk, mitigation hooks
 
 ### 4 Simulation & Evaluation Setup
 - Platform/setup assumptions

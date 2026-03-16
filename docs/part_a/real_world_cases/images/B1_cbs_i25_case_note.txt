@@ -1,0 +1,8 @@
+B1 Evidence: Wrong-way entry in a reversible/HOV corridor (CBS Colorado, May 4, 2015)
+
+• Aug. 31, 2013: head-on crash after wrong-way entry into the I-25/US-36 HOV segment.
+• Reported outcome: 1 fatality and 1 critical injury.
+• Report cites CDOT concern about ambiguous wrong-way entry paths and prior crashes.
+
+Mapping to Scenario B1:
+Lane-direction signal interpretation / lane-attribution error at reversible-lane entrances.
