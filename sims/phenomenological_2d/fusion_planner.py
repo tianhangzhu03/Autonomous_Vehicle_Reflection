@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-VALID_MODES = {"camera_only", "multimodal_permissive", "mitigation"}
+VALID_MODES = {"camera_only", "multi_sensor_permissive", "mitigation"}
 
 
 class FusionAndPlanner:
     """Fusion and planning logic for three stacks:
 
     1) camera_only
-    2) multimodal_permissive
+    2) multi_sensor_permissive
     3) mitigation (contradiction-aware + conservative unknown handling)
     """
 
@@ -27,7 +27,7 @@ class FusionAndPlanner:
             self.a1_conf_threshold = 0.58
             self.w_cam, self.w_lid, self.w_rad = 1.0, 0.0, 0.0
             self.lambda_var = 0.0
-        elif mode == "multimodal_permissive":
+        elif mode == "multi_sensor_permissive":
             self.a1_conf_threshold = 0.62
             self.w_cam, self.w_lid, self.w_rad = 0.65, 0.20, 0.15
             self.lambda_var = 0.0
@@ -84,7 +84,7 @@ class FusionAndPlanner:
                 return float(max(0.0, self.v_nominal_a1 * (1.0 - 1.45 * severity)))
             return self.v_nominal_a1
 
-        if self.mode == "multimodal_permissive":
+        if self.mode == "multi_sensor_permissive":
             if track_conf >= self.a1_conf_threshold and ttc_virtual < self.ttc_safe:
                 severity = np.clip((self.ttc_safe - ttc_virtual) / self.ttc_safe, 0.0, 1.0)
                 return float(max(0.0, self.v_nominal_a1 * (1.0 - 1.30 * severity)))
@@ -127,7 +127,7 @@ class FusionAndPlanner:
             updated = self._normalize(np.array([new_m_o, new_m_f, new_m_u], dtype=float))
             return updated, self.v_nominal_a2, 0.0
 
-        if self.mode == "multimodal_permissive":
+        if self.mode == "multi_sensor_permissive":
             # Missing depth is implicitly interpreted as free support.
             kappa = np.clip(0.75 * cam_free_prob + 0.20 * (1.0 - lid_occ_prob), 0.0, 1.0)
             new_m_f = m_f + kappa * m_u

@@ -3,7 +3,7 @@
 This module implements a lightweight CPU-only simulation for Part A:
 - `A1`: ghost-vehicle false-positive obstacle commitment.
 - `A2`: transparent-garage-door false free-space commitment.
-- Three stacks: `camera_only`, `multimodal_permissive`, `mitigation`.
+- Three stacks: `camera_only`, `multi_sensor_permissive`, `mitigation`.
 
 ## Structure
 

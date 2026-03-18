@@ -12,10 +12,10 @@ from scipy import stats
 from .palette import PALETTE
 from .simulator import A1Case, A2Case, CAVSimulation
 
-MODES = ["camera_only", "multimodal_permissive", "mitigation"]
+MODES = ["camera_only", "multi_sensor_permissive", "mitigation"]
 MODE_LABEL = {
     "camera_only": "Camera-only",
-    "multimodal_permissive": "Multi-modal permissive",
+    "multi_sensor_permissive": "Multi-sensor permissive",
     "mitigation": "Mitigation",
 }
 
@@ -25,8 +25,8 @@ SCENARIO_METRICS = {
 }
 
 PAIRWISE = [
-    ("camera_only", "multimodal_permissive"),
-    ("multimodal_permissive", "mitigation"),
+    ("camera_only", "multi_sensor_permissive"),
+    ("multi_sensor_permissive", "mitigation"),
     ("camera_only", "mitigation"),
 ]
 
@@ -218,16 +218,16 @@ def plot_a2_run(runs: dict[str, Any], out: Path) -> None:
     fig, axes = plt.subplots(2, 1, figsize=(6.6, 4.4), sharex=True)
     fig.patch.set_facecolor("white")
 
-    plot_order = ["multimodal_permissive", "camera_only", "mitigation"]
+    plot_order = ["multi_sensor_permissive", "camera_only", "mitigation"]
 
     for mode in plot_order:
         run = runs[mode]
         style: dict[str, Any] = {"lw": 1.8}
-        if mode == "multimodal_permissive":
+        if mode == "multi_sensor_permissive":
             style.update({"ls": "--"})
         elif mode == "camera_only":
             # Marker overlay makes camera-only visible when it numerically overlaps
-            # with multi-modal permissive in A2 speed trajectories.
+            # with multi-sensor permissive in A2 speed trajectories.
             style.update({"marker": "o", "ms": 2.8, "markevery": 8, "mfc": "white", "mew": 0.9})
         axes[0].plot(run["time"], run["speed"], label=MODE_LABEL[mode], color=PALETTE[mode], **style)
     axes[0].set_ylabel("Speed (m/s)")
@@ -236,11 +236,11 @@ def plot_a2_run(runs: dict[str, Any], out: Path) -> None:
     axes[0].legend(loc="upper right", fontsize=8)
     axes[0].set_title("A2: Transparent Barrier Handling (Compact Timeline)")
 
-    if np.allclose(runs["camera_only"]["speed"], runs["multimodal_permissive"]["speed"]):
+    if np.allclose(runs["camera_only"]["speed"], runs["multi_sensor_permissive"]["speed"]):
         axes[0].text(
             0.02,
             0.08,
-            "Camera-only speed overlaps\nwith multi-modal permissive",
+            "Camera-only speed overlaps\nwith multi-sensor permissive",
             transform=axes[0].transAxes,
             fontsize=7,
             color=PALETTE["bg_neutral_1"],
@@ -249,7 +249,7 @@ def plot_a2_run(runs: dict[str, Any], out: Path) -> None:
     for mode in plot_order:
         run = runs[mode]
         style = {"lw": 1.8}
-        if mode == "multimodal_permissive":
+        if mode == "multi_sensor_permissive":
             style["ls"] = "--"
         elif mode == "camera_only":
             style.update({"marker": "o", "ms": 2.8, "markevery": 8, "mfc": "white", "mew": 0.9})
@@ -278,10 +278,10 @@ def plot_summary(summary: dict[tuple[str, str], dict[str, float]], out: Path) ->
             summary[("A2", "camera_only")]["evr_mean"],
             summary[("A2", "camera_only")]["barrier_collision_mean"],
         ],
-        "multimodal_permissive": [
-            summary[("A1", "multimodal_permissive")]["pbs_mean"],
-            summary[("A2", "multimodal_permissive")]["evr_mean"],
-            summary[("A2", "multimodal_permissive")]["barrier_collision_mean"],
+        "multi_sensor_permissive": [
+            summary[("A1", "multi_sensor_permissive")]["pbs_mean"],
+            summary[("A2", "multi_sensor_permissive")]["evr_mean"],
+            summary[("A2", "multi_sensor_permissive")]["barrier_collision_mean"],
         ],
         "mitigation": [
             summary[("A1", "mitigation")]["pbs_mean"],
@@ -292,7 +292,7 @@ def plot_summary(summary: dict[tuple[str, str], dict[str, float]], out: Path) ->
 
     offsets = {
         "camera_only": -width,
-        "multimodal_permissive": 0.0,
+        "multi_sensor_permissive": 0.0,
         "mitigation": width,
     }
 
@@ -346,31 +346,31 @@ def write_summary_markdown(
                 return float(row["mann_whitney_p"])
         return 1.0
 
-    p_a1 = find_sig("A1", "pbs", "multimodal_permissive", "mitigation")
-    p_a2 = find_sig("A2", "evr", "multimodal_permissive", "mitigation")
+    p_a1 = find_sig("A1", "pbs", "multi_sensor_permissive", "mitigation")
+    p_a2 = find_sig("A2", "evr", "multi_sensor_permissive", "mitigation")
 
-    pbs_multi = pick("A1", "multimodal_permissive", "pbs_mean")
+    pbs_multi = pick("A1", "multi_sensor_permissive", "pbs_mean")
     pbs_mit = pick("A1", "mitigation", "pbs_mean")
     pbs_drop = 100.0 * (pbs_multi - pbs_mit) / max(pbs_multi, 1e-9)
 
-    evr_multi = pick("A2", "multimodal_permissive", "evr_mean")
+    evr_multi = pick("A2", "multi_sensor_permissive", "evr_mean")
     evr_mit = pick("A2", "mitigation", "evr_mean")
     evr_drop = 100.0 * (evr_multi - evr_mit) / max(evr_multi, 1e-9)
 
     text = f"""# Part A Phenomenological Simulation Results
 
-Runs per cell: {n_seeds} seeds across three stacks (`camera_only`, `multimodal_permissive`, `mitigation`).
+Runs per cell: {n_seeds} seeds across three stacks (`camera_only`, `multi_sensor_permissive`, `mitigation`).
 
 ## Key Outcomes
 
-- **A1 PBS (multi-modal permissive -> mitigation)**: {pbs_multi:.3f} -> {pbs_mit:.3f} (reduction {pbs_drop:.1f}%, Mann-Whitney p={p_a1:.3g}).
-- **A2 EVR (multi-modal permissive -> mitigation)**: {evr_multi:.3f} -> {evr_mit:.3f} (reduction {evr_drop:.1f}%, Mann-Whitney p={p_a2:.3g}).
-- **A2 collision rate**: camera-only={pick('A2','camera_only','barrier_collision_mean'):.3f}, multi-modal permissive={pick('A2','multimodal_permissive','barrier_collision_mean'):.3f}, mitigation={pick('A2','mitigation','barrier_collision_mean'):.3f}.
+- **A1 PBS (multi-sensor permissive -> mitigation)**: {pbs_multi:.3f} -> {pbs_mit:.3f} (reduction {pbs_drop:.1f}%, Mann-Whitney p={p_a1:.3g}).
+- **A2 EVR (multi-sensor permissive -> mitigation)**: {evr_multi:.3f} -> {evr_mit:.3f} (reduction {evr_drop:.1f}%, Mann-Whitney p={p_a2:.3g}).
+- **A2 collision rate**: camera-only={pick('A2','camera_only','barrier_collision_mean'):.3f}, multi-sensor permissive={pick('A2','multi_sensor_permissive','barrier_collision_mean'):.3f}, mitigation={pick('A2','mitigation','barrier_collision_mean'):.3f}.
 
 ## Safety-Efficiency Tradeoff
 
-- **A2 travel time (s)**: camera-only={pick('A2','camera_only','travel_time_s_mean'):.2f}, multi-modal permissive={pick('A2','multimodal_permissive','travel_time_s_mean'):.2f}, mitigation={pick('A2','mitigation','travel_time_s_mean'):.2f}.
-- **A2 stop-time ratio**: camera-only={pick('A2','camera_only','stop_time_ratio_mean'):.3f}, multi-modal permissive={pick('A2','multimodal_permissive','stop_time_ratio_mean'):.3f}, mitigation={pick('A2','mitigation','stop_time_ratio_mean'):.3f}.
+- **A2 travel time (s)**: camera-only={pick('A2','camera_only','travel_time_s_mean'):.2f}, multi-sensor permissive={pick('A2','multi_sensor_permissive','travel_time_s_mean'):.2f}, mitigation={pick('A2','mitigation','travel_time_s_mean'):.2f}.
+- **A2 stop-time ratio**: camera-only={pick('A2','camera_only','stop_time_ratio_mean'):.3f}, multi-sensor permissive={pick('A2','multi_sensor_permissive','stop_time_ratio_mean'):.3f}, mitigation={pick('A2','mitigation','stop_time_ratio_mean'):.3f}.
 
 ## Interpretation
 

@@ -8,15 +8,30 @@
 \usepackage{booktabs}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\graphicspath{
+  {./}
+  {real_world_cases/images/}
+  {../part_b/}
+  {../../results/part_a_simulation_100/}
+  {../../results_/figures/}
+  {docs/part_a/}
+  {docs/part_a/real_world_cases/images/}
+  {docs/part_b/}
+  {results/part_a_simulation_100/}
+  {results_/figures/}
+}
 
-\title{Autonomous Vehicle Corner-Case Safety Analysis Draft}
-\author{Benjamin Zhu}
+\title{Red-Team Safety Analysis of Autonomous Vehicle Corner Cases under Sensor and Rule Contradictions}
+\author{Tianhang Zhu}
 \affiliation{
-  \institution{EE495 Autonomous Vehicles}
-  \city{Evanston}
+  \institution{Robert R. McCormick School of Engineering and Applied Science, Northwestern University}
   \country{USA}
 }
-\email{benjamin@example.com}
+\author{Yiming Liu}
+\affiliation{
+  \institution{Robert R. McCormick School of Engineering and Applied Science, Northwestern University}
+  \country{USA}
+}
 
 \begin{document}
 
@@ -25,7 +40,7 @@ This project conducts a red-team analysis of autonomous driving corner cases whe
 
 Three findings are consistent across scenarios. First, unsafe behavior is mainly caused by premature commitment under contradiction rather than isolated detector error. Second, multi-sensor architectures improve average robustness but do not guarantee safety when fusion and arbitration layers do not explicitly model uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces, including contradiction-aware fusion, conservative unknown handling, robust lane attribution, and transition-state arbitration constraints.
 
-Team contribution statement: Member A (Benjamin Zhu) is responsible for Part A (A1/A2), including literature synthesis and scenario-level analysis of reflection and transparent-glass failures. Member B is responsible for Part B (B1/B2), including reversible-lane scenario design and analysis. Final integration and presentation are completed jointly.
+Team contribution statement: Member A (Tianhang Zhu) is responsible for Part A (A1/A2), including literature synthesis and scenario-level analysis of reflection and transparent-glass failures. Member B (Yiming Liu) is responsible for Part B (B1/B2), including reversible-lane scenario design and analysis. Final integration and presentation are completed jointly.
 \end{abstract}
 
 \maketitle
@@ -45,7 +60,8 @@ The four project scenarios are grounded in reported real-world safety events rat
 
 \textbf{A2-aligned case (barrier interaction under weak geometric confirmation):} In Recall 25E-034, Waymo reported collisions with gates, chains, and similar roadway barriers, and NHTSA recorded multiple incidents in this category in the recall chronology \cite{waymo2025recall}. This is aligned with A2 logic: when traversability inference over-trusts appearance and under-weights geometric uncertainty near boundary objects, the system can commit to unsafe forward motion.
 
-\textbf{B1-aligned case (lane-direction interpretation failure):} ABC7 reported a Waymo vehicle driving into oncoming traffic in Tempe, Arizona, and the onboard passenger intervened to steer away \cite{abc7tempe2024}. This maps to B1 lane-direction and lane-attribution failure under real traffic operation.
+\textbf{B1-aligned case.}\par
+ABC7 reported a Waymo vehicle driving into oncoming traffic in Tempe, Arizona, and the onboard passenger intervened to steer away \cite{abc7tempe2024}. This event is consistent with B1 lane-direction and lane-attribution failure under real traffic operation.
 
 \textbf{B2-aligned case (state instability and traffic-control conflict):} AP reported that during a San Francisco power outage, Waymo vehicles stopped in intersections and blocked roads while attempting to operate under degraded control context \cite{ap2025waymopower}. This aligns with B2, where control-state arbitration under conflicting or degraded traffic-control cues can produce oscillation, deadlock, or blocking behavior.
 
@@ -54,16 +70,16 @@ The four project scenarios are grounded in reported real-world safety events rat
   \begin{minipage}[t]{0.38\textwidth}
     \vspace{0pt}
     \centering
-    \includegraphics[width=\linewidth]{real_world_cases/images/A1_abc7_baybridge.jpg}
+    \includegraphics[width=\linewidth]{A1_abc7_baybridge.jpg}
 
     \vspace{4pt}
 
-    \includegraphics[width=\linewidth]{real_world_cases/images/B2_user.jpg}
+    \includegraphics[width=\linewidth]{B2_user.jpg}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.58\textwidth}
     \vspace{8pt}
     \centering
-    \includegraphics[width=\linewidth]{real_world_cases/images/A2.jpg}
+    \includegraphics[width=\linewidth]{A2.jpg}
   \end{minipage}
   \caption{Real-world AV evidence snapshots motivating A1, A2, and B2. Left column: Bay Bridge multi-car crash context linked to abrupt ``self-driving'' braking (A1, top) \cite{abc7baybridge2023} and user-selected B2 image from a Waymo blocking/degraded-control context in San Francisco (B2, bottom) \cite{ap2025waymopower}. Right column: NHTSA/Waymo Recall 25E-034 chronology on gate/chain barrier collisions (A2), with the barrier-collision statement explicitly highlighted \cite{waymo2025recall}. B1 is cited as an AV wrong-way lane-direction incident \cite{abc7tempe2024} and intentionally kept text-only per presentation preference.}
   \Description{Three-panel evidence figure in two columns. Left column stacks the Bay Bridge abrupt-braking crash scene and a user-provided B2 Waymo traffic-context photo. Right column shows an annotated excerpt from Waymo recall chronology with the gates/chains collision statement circled.}
@@ -146,7 +162,7 @@ This produces two failure phenotypes: (i) direct wrong-lane commitment, and (ii)
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{../part_b/B1.png}
+  \includegraphics[width=\columnwidth]{B1.png}
   \caption{B1 reversible-lane entrance. Signal visibility and lane attribution are degraded by glare and geometry, enabling wrong-lane commitment under permissive arbitration.}
   \Description{Illustration of a reversible-lane entrance where overhead signal semantics and lane attribution are ambiguous.}
   \label{fig:b1_scene_main}
@@ -160,7 +176,7 @@ Compared with B1, this scenario is more state-machine dominated: camera-only fai
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{../part_b/B2.png}
+  \includegraphics[width=\columnwidth]{B2.png}
   \caption{B2 freeway-exit transition window. Local temporary control conflicts with stale exit intent, creating late-override and oscillation risk near the no-return region.}
   \Description{Illustration of a freeway off-ramp where temporary rerouting cues conflict with stale route intent.}
   \label{fig:b2_scene_main}
@@ -226,7 +242,7 @@ Statistical significance is strong despite the deterministic-looking means. For 
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{../../results/part_a_simulation_100/a2_three_modes_timeline.png}
+  \includegraphics[width=\columnwidth]{a2_three_modes_timeline.png}
   \caption{A2 compact timeline (single-column). Top: speed profile; bottom: unknown evidential mass $m(\Omega)$ near the transparent boundary. Permissive baselines keep nominal motion under unresolved uncertainty and collide, whereas mitigation preserves uncertainty and enforces envelope-triggered deceleration to full stop.}
   \Description{Two-panel time-series plot for A2 under camera-only, multi-sensor permissive, and mitigation. The top panel shows speed over time; the bottom panel shows unknown evidential mass m(Omega). Baselines continue moving and collide; mitigation slows and stops under high uncertainty.}
   \label{fig:a2_timeline}
@@ -256,7 +272,63 @@ Part B follows the same simulation philosophy as Part A: shared randomized cases
 
 For B1, the headline metric is Wrong Commitment Rate (WCR), defined as the fraction of runs where the policy commits into a lane that is oracle-unsafe under reversible-lane authority. For B2, the headline metric is Conflict Intrusion Rate (CIR), defined as the fraction of runs where exit-commit is executed while temporary local authority indicates closure or no-return conflict. A complementary B2 metric, Late Merge-Back Severity (LMS), measures how far the vehicle proceeds before abandoning an invalid exit.
 
-Observed results follow the same ordering as Part A. In B1, mean WCR is $0.810$ (camera-only), $0.050$ (multi-sensor permissive), and $0.000$ (mitigation). In B2 closed-transition subsets, CIR is $0.486$, $0.014$, and $0.000$, while LMS decreases from $22.429\,\mathrm{m}$ to $0.398\,\mathrm{m}$ and $0.012\,\mathrm{m}$ for the same architecture order. These values indicate that additional sensors reduce average risk, but contradiction-aware arbitration is required to suppress residual transition-window failures.
+Observed results follow the same ordering as Part A. In B1, mean WCR is $0.810$ (camera-only), $0.050$ (multi-sensor permissive), and $0.000$ (mitigation). The corresponding decision-oscillation count (DOC) is $2.800$, $2.710$, and $2.340$, respectively. Travel delay increases from $0.201\,\mathrm{s}$ to $0.497\,\mathrm{s}$ and $0.607\,\mathrm{s}$ as the policy becomes more conservative.
+
+The dominant B1 subset is \texttt{adjacent\_open\_risk}. In this core setting, wrong-commitment event rate is $1.000$ (camera-only), $0.062$ (multi-sensor permissive), and $0.000$ (mitigation), supporting the interpretation that the main B1 risk is premature lane commitment under unresolved attribution ambiguity, not visibility loss alone.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{b1_aligned_partA_typical_case.png}
+  \caption{Typical B1 run in the adjacent-open-risk setting. Shared cues are identical across architectures, but the arbitration policy determines whether the system commits early, oscillates, or remains conservative.}
+  \Description{Time-series visualization of a representative B1 run comparing camera-only, multi-sensor permissive, and mitigation controllers under adjacent-open-risk reversible-lane conflict.}
+  \label{fig:b1_typical_main}
+\end{figure}
+
+\begin{table}[t]
+  \caption{B1 cross-architecture summary (Part B).}
+  \label{tab:b1_summary_main}
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.08}
+  \begin{tabular}{lcccc}
+    \toprule
+    Architecture & WCR $\downarrow$ & DOC $\downarrow$ & $T_{\text{delay}}$ (s) $\downarrow$ & Aux. cost $\downarrow$ \\
+    \midrule
+    Camera-only & 0.810 & 2.800 & 0.201 & 17.043 \\
+    Multi-sensor perm. & 0.050 & 2.710 & 0.497 & 1.493 \\
+    Mitigation & 0.000 & 2.340 & 0.607 & 1.080 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+B2 is best interpreted on the \texttt{closed\_transition\_conflict} subset, where stale exit priors and temporary local authority conflict most strongly. In this subset, CIR is $0.486$ (camera-only), $0.014$ (multi-sensor permissive), and $0.000$ (mitigation). Late Merge-Back Severity (LMS) decreases from $22.429\,\mathrm{m}$ to $0.398\,\mathrm{m}$ and $0.012\,\mathrm{m}$ under the same architecture order. DOC remains elevated for multi-sensor permissive ($4.886$) compared with mitigation ($3.414$), indicating residual transition-window oscillation even when average intrusion risk is reduced.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{b2_aligned_partA_typical_case.png}
+  \caption{Typical B2 closed-transition-conflict run. Camera-only over-commits to stale exit intent, multi-sensor permissive shows stronger near-ramp oscillation, and mitigation transitions earlier into a stable safe fallback.}
+  \Description{Time-series visualization of a representative B2 run comparing camera-only, multi-sensor permissive, and mitigation controllers under transition-window conflict.}
+  \label{fig:b2_typical_main}
+\end{figure}
+
+\begin{table}[t]
+  \caption{B2 closed-transition-conflict summary (Part B).}
+  \label{tab:b2_summary_main}
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.08}
+  \begin{tabular}{lcccc}
+    \toprule
+    Architecture & CIR $\downarrow$ & DOC $\downarrow$ & $T_{\text{delay}}$ (s) $\downarrow$ & LMS (m) $\downarrow$ \\
+    \midrule
+    Camera-only & 0.486 & 3.629 & 0.279 & 22.429 \\
+    Multi-sensor perm. & 0.014 & 4.886 & 0.407 & 0.398 \\
+    Mitigation & 0.000 & 3.414 & 0.489 & 0.012 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Mitigation Strategies}
 
@@ -339,15 +411,25 @@ The B2 mitigation uses a hold-first state machine with explicit override and loc
 
 \section{Challenges and Future Work}
 
-The 0\% collision result for A2 mitigation is a bounded guarantee, not a claim of universal safety. It is valid within this simulator because actuation is modeled as near-instantaneous and longitudinal friction is represented by a bounded effective deceleration term. Real deployments include brake latency, tire-road friction variation, and slip effects that can violate the assumed stopping envelope.
+\textbf{Boundary of the claim.}
+The A2 zero-collision outcome should be read as a bounded result, not as a universal guarantee. In our simulator, braking is near-instant and friction is summarized by a bounded effective deceleration. That is a valid mechanism test, but not a full deployment test. In production, the same policy must survive latency, tire-force limits, grade changes, and estimator delay. In other words, the current result is a safety lower bound under controlled assumptions, consistent with SOTIF-style reasoning about functional insufficiency and triggering conditions \cite{iso21448}.
 
-A second challenge is conservatism. Preserving $m_c(\Omega)$ and enforcing envelope-triggered braking strongly improves safety, but materially reduces throughput in access zones. This is visible in the increased travel time and stop-time ratio under mitigation. Future work should therefore target adaptive conservatism: uncertainty-aware speed planning with context-dependent risk budgets, plus explicit comfort constraints on jerk.
+\textbf{Safety vs. throughput is structural, not accidental.}
+The mitigation works by refusing premature commitment when evidence conflicts. That choice is exactly why collision risk drops, and also why travel time rises in A2. This is not a tuning artifact; it is an architectural trade-off. A practical next step is to replace static caution with context-dependent caution: keep strict envelopes near high-cost boundaries (glass doors, lane-control transitions), but recover nominal speed quickly once contradiction decays. The objective is to minimize \emph{time under unresolved uncertainty}, not to maximize conservatism everywhere.
 
-Finally, future validation should expand beyond 2D kinematics toward higher-fidelity effects: asynchronous sensor timing, actuator lag models, variable friction, opening/closing door dynamics, and mixed static-dynamic interactions (e.g., pedestrians near transparent barriers). These additions are necessary to convert the current deterministic lower-bound argument into a more realistic probabilistic safety claim.
+\textbf{From mechanism proof to assurance evidence.}
+The current 100-seed study establishes directional effects robustly, but it does not yet close the assurance loop needed for deployment. Prior work shows why mileage-only arguments are insufficient for AV safety claims \cite{kalra2016}. The implication is direct: our mechanism-level simulator should be embedded in a broader scenario-based evidence stack (closed-loop simulation, targeted proving-ground replay, and selective on-road confirmation), as advocated in AV testing and validation literature \cite{koopman2016sae,koopman2017its}.
+
+\textbf{Concrete next stage.}
+For Part A, the immediate extension is to move from 2D phenomenology to 3D constrained realism: explicit sensor asynchrony, calibrated actuation lag, slope-dependent stopping envelopes, and reflection/transparency material priors. For Part B, the key extension is authority-aware transition testing under delayed or inconsistent lane-control updates. At system level, both tracks should be organized into a safety-case workflow aligned with current standards and regulation-facing evaluation practice \cite{ul4600,unr157}.
 
 \section{Conclusion}
 
-Across A1--B2, the dominant hazard is premature commitment under unresolved contradiction. The architecture-level comparison is therefore better interpreted as permissive commitment versus contradiction-aware commitment, rather than as sensor-count comparison alone. In both physics-driven (A1/A2) and rule-priority (B1/B2) corner cases, multi-sensor evidence improves average robustness but does not guarantee safety without explicit contradiction arbitration, uncertainty preservation, and conservative transition logic.
+This work studied four corner cases with one common failure pattern: the stack commits too early while evidence is still contradictory. A1 and A2 expose this pattern through glass-induced appearance-geometry mismatch; B1 and B2 expose it through temporary rule-authority conflict. Across both families, the strongest separator is not sensor count by itself, but commitment policy: permissive fusion and permissive arbitration fail earlier and fail harder.
+
+Our results support a practical design rule. Keep uncertainty explicit for longer, and postpone high-authority actions until contradiction drops below a defensible threshold. In Part A, that rule reduces A1 phantom-braking severity and removes A2 collisions in the tested kinematic envelope. In Part B, the same rule family (attribution gating and hold-first transition arbitration) suppresses wrong commitments and transition-window intrusions.
+
+The main limitation is also clear. The current simulator proves mechanism plausibility and policy effect, but not full-field reliability. The next milestone is therefore not another isolated metric; it is an integrated safety argument that connects scenario coverage, policy behavior under contradiction, and regulation-facing evidence generation \cite{iso21448,ul4600,unr157}. That is the path from strong academic findings to credible deployment claims.
 
 \begin{thebibliography}{28}
 
@@ -543,6 +625,45 @@ S. S. Sajjanar et al.
 \newblock 2019.
 \newblock ClearGrasp: 3D Shape Estimation of Transparent Objects for Manipulation.
 \newblock \textit{arXiv preprint arXiv:1910.02550}.
+
+\bibitem{iso21448}
+International Organization for Standardization.
+\newblock 2022.
+\newblock \textit{ISO 21448:2022 Road vehicles --- Safety of the intended functionality}.
+\newblock \url{https://www.iso.org/standard/77490.html}.
+
+\bibitem{ul4600}
+UL Standards.
+\newblock 2022.
+\newblock \textit{UL 4600: Standard for Safety for the Evaluation of Autonomous Products (Edition 2)}.
+\newblock \url{https://ulnorm.com/product/ul-4600/}.
+
+\bibitem{unr157}
+United Nations Economic Commission for Europe.
+\newblock 2021.
+\newblock \textit{UN Regulation No. 157: Uniform provisions concerning the approval of vehicles with regard to Automated Lane Keeping Systems}.
+\newblock \url{https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2021.082.01.0075.01.ENG}.
+
+\bibitem{kalra2016}
+N. Kalra and S. M. Paddock.
+\newblock 2016.
+\newblock \textit{Driving to Safety: How Many Miles of Driving Would It Take to Demonstrate Autonomous Vehicle Reliability?}
+\newblock RAND Corporation, RR-1478.
+\newblock \url{https://www.rand.org/content/dam/rand/pubs/research_reports/RR1400/RR1478/RAND_RR1478.pdf}.
+
+\bibitem{koopman2017its}
+P. Koopman and M. Wagner.
+\newblock 2017.
+\newblock Autonomous Vehicle Safety: An Interdisciplinary Challenge.
+\newblock \textit{IEEE Intelligent Transportation Systems Magazine} 9, 1 (2017), 90--96.
+\newblock \url{https://ieeexplore.ieee.org/document/7823109}.
+
+\bibitem{koopman2016sae}
+P. Koopman and M. Wagner.
+\newblock 2016.
+\newblock Challenges in Autonomous Vehicle Testing and Validation.
+\newblock \textit{SAE Technical Paper} 2016-01-0128.
+\newblock \url{https://doi.org/10.4271/2016-01-0128}.
 
 \end{thebibliography}
 

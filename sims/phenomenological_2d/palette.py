@@ -6,7 +6,7 @@ PALETTE = {
     "B1": "#e19d92",
     "B2": "#eac47c",
     "camera_only": "#e19d92",
-    "multimodal_permissive": "#9b8e95",
+    "multi_sensor_permissive": "#9b8e95",
     "mitigation": "#7e8cad",
     "uncertainty": "#dadae4",
     "bg_neutral_1": "#dbc0af",
