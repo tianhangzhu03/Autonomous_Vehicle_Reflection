@@ -134,13 +134,37 @@ m_c^{t+1}(\Omega)=(1-\kappa)m_c^t(\Omega),
 \end{equation}
 with large $\kappa$ despite missing geometric confirmation.
 
-\subsection{Part B: Placeholder for B1/B2 (To Be Filled by Teammate)}
+\subsection{Part B: Rule-Priority Conflict Scenarios (B1, B2)}
 
-\textbf{Reserved for teammate integration.} Keep the same structure as Part A:
-\begin{itemize}
-  \item B1 scenario definition, failure chain, architecture comparison, and risk.
-  \item B2 scenario definition, transition-window failure chain, architecture comparison, and risk.
-\end{itemize}
+Part B studies corner cases where the dominant failure is rule arbitration under temporary control, rather than object detection alone. The shared hazard is premature commitment when local authority (overhead lane control or temporary rerouting) conflicts with stale route-level intent \cite{mutcd2023,manuel2020,veer2022}.
+
+\subsubsection{B1: Signal Misread or Lane-Attribution Error at a Reversible-Lane Entrance}
+
+B1 occurs at reversible-lane entrances under glare, partial occlusion, and viewpoint compression. The critical error is not only misreading a red-X/green-arrow cue, but assigning a correct cue to the wrong lane. In the dominant unsafe mode, an adjacent lane appears open while ego-lane attribution remains unresolved; a permissive policy may still convert the open-looking cue into ego-lane passability.
+
+This produces two failure phenotypes: (i) direct wrong-lane commitment, and (ii) threshold-region oscillation (commit-abort-repeat) near the entrance. Camera-only is most vulnerable due to semantic over-trust, while multi-sensor stacks reduce but do not remove risk if attribution gating is weak. A reported wrong-way Waymo event in Tempe is aligned with this failure family \cite{abc7tempe2024}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../part_b/B1.png}
+  \caption{B1 reversible-lane entrance. Signal visibility and lane attribution are degraded by glare and geometry, enabling wrong-lane commitment under permissive arbitration.}
+  \Description{Illustration of a reversible-lane entrance where overhead signal semantics and lane attribution are ambiguous.}
+  \label{fig:b1_scene_main}
+\end{figure}
+
+\subsubsection{B2: Transition-Window Conflict at a Freeway Exit}
+
+B2 occurs when a stale exit prior conflicts with temporary local control (closure, reroute, or partial blockage) near an off-ramp. The main failure is late override: the planner keeps treating the exit as valid after local authority has changed. This yields unstable corrections near the gore region and can trigger intrusion into a restricted zone before merge-back is initiated.
+
+Compared with B1, this scenario is more state-machine dominated: camera-only fails by over-trusting stale route semantics, while multi-sensor permissive still oscillates if transition hysteresis and no-return locking are weak. Reported degraded-control blocking behavior from Waymo vehicles during the San Francisco outage is aligned with this transition-conflict pattern \cite{ap2025waymopower}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../part_b/B2.png}
+  \caption{B2 freeway-exit transition window. Local temporary control conflicts with stale exit intent, creating late-override and oscillation risk near the no-return region.}
+  \Description{Illustration of a freeway off-ramp where temporary rerouting cues conflict with stale route intent.}
+  \label{fig:b2_scene_main}
+\end{figure}
 
 \section{Simulation \& Evaluation Setup}
 
@@ -226,9 +250,13 @@ Statistical significance is strong despite the deterministic-looking means. For 
   \end{tabular}
 \end{table}
 
-\subsection{Part B: Placeholder for Evaluation Setup}
+\subsection{Part B: Phenomenological Setup, Metrics, and Findings}
 
-\textbf{Reserved for teammate integration.} Include B1/B2 setup, metrics, and baseline-vs-mitigation matrix aligned with Part A reporting format.
+Part B follows the same simulation philosophy as Part A: shared randomized cases are generated once per seed and reused across three stacks (\textit{camera-only}, \textit{multi-sensor permissive}, \textit{mitigation}). The objective is to isolate arbitration-policy effects under identical contradictory cues, instead of conflating policy differences with different random scene draws.
+
+For B1, the headline metric is Wrong Commitment Rate (WCR), defined as the fraction of runs where the policy commits into a lane that is oracle-unsafe under reversible-lane authority. For B2, the headline metric is Conflict Intrusion Rate (CIR), defined as the fraction of runs where exit-commit is executed while temporary local authority indicates closure or no-return conflict. A complementary B2 metric, Late Merge-Back Severity (LMS), measures how far the vehicle proceeds before abandoning an invalid exit.
+
+Observed results follow the same ordering as Part A. In B1, mean WCR is $0.810$ (camera-only), $0.050$ (multi-sensor permissive), and $0.000$ (mitigation). In B2 closed-transition subsets, CIR is $0.486$, $0.014$, and $0.000$, while LMS decreases from $22.429\,\mathrm{m}$ to $0.398\,\mathrm{m}$ and $0.012\,\mathrm{m}$ for the same architecture order. These values indicate that additional sensors reduce average risk, but contradiction-aware arbitration is required to suppress residual transition-window failures.
 
 \section{Mitigation Strategies}
 
@@ -297,9 +325,17 @@ Within the 2D kinematic boundary model, this coupling of epistemic uncertainty a
   \end{equation}
 \end{itemize}
 
-\subsection{Part B: Placeholder for Mitigation Strategies}
+\subsection{Part B: Mitigation Strategies for B1/B2}
 
-\textbf{Reserved for teammate integration.} Include B1 lane-attribution robustness and B2 transition-state arbitration with hysteresis and dwell-time constraints.
+Part B mitigation follows the same principle as Part A: do not convert unresolved contradiction into deterministic high-authority actions.
+
+\subsubsection{B1 Mitigation: Attribution-Gated Commitment}
+
+The B1 mitigation inserts a strict lane-attribution gate between signal recognition and lane-level commitment. Open-looking overhead cues are treated as advisory until three conditions hold jointly: stable lane assignment, multi-frame persistence, and low contradiction with motion/context evidence. If any condition fails near the entrance, the planner remains in a safe-lane hold state instead of committing to reversible-lane entry \cite{hirabayashi2019,monninger2023}.
+
+\subsubsection{B2 Mitigation: Hold-First Transition Arbitration}
+
+The B2 mitigation uses a hold-first state machine with explicit override and lock logic. Far from the ramp, final exit-commit is disallowed; near the ramp, commit is gated by temporary-control weakness and boundary-risk consistency. Once closure evidence dominates, stale exit confirmation is cleared, reroute authority accumulates, and a no-return lock prevents re-entry into invalid exit commitment. This reduces both intrusion events (CIR) and late-correction distance (LMS), improving safety and behavioral stability in the transition window \cite{veer2022,shalev2017}.
 
 \section{Challenges and Future Work}
 
@@ -311,7 +347,7 @@ Finally, future validation should expand beyond 2D kinematics toward higher-fide
 
 \section{Conclusion}
 
-Across A1--B2, the dominant hazard is premature commitment under unresolved contradiction. The architecture-level comparison should therefore be evaluated as permissive commitment versus contradiction-aware commitment, rather than as sensor-count comparison alone. Final conclusions and limitations for Part B will be merged after teammate integration.
+Across A1--B2, the dominant hazard is premature commitment under unresolved contradiction. The architecture-level comparison is therefore better interpreted as permissive commitment versus contradiction-aware commitment, rather than as sensor-count comparison alone. In both physics-driven (A1/A2) and rule-priority (B1/B2) corner cases, multi-sensor evidence improves average robustness but does not guarantee safety without explicit contradiction arbitration, uncertainty preservation, and conservative transition logic.
 
 \begin{thebibliography}{28}
 
