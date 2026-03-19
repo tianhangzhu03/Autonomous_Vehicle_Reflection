@@ -800,60 +800,66 @@ def plot_typical_case(raw_df: pd.DataFrame, save_path: Path) -> None:
     candidate = candidate.sort_values(["wcr", "doc", "osc_env", "mean_gap"], ascending=[True, False, False, True])
     run_id = int(candidate.iloc[0]["run_id"])
 
-    fig, axes = plt.subplots(4, 1, figsize=(10, 11), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(11.2, 7.8), sharex=True)
+    ax_env, ax_belief, ax_decision, ax_speed = axes.ravel()
+    fig.suptitle(f"Typical adjacent-open-risk run (run_id={run_id})", fontsize=13)
 
     # Shared environment
     df_ref = raw_df[
         (raw_df["run_id"] == run_id)
         & (raw_df["architecture"] == "camera_only")
-    ].sort_values("distance_m", ascending=False)
-    axes[0].plot(df_ref["distance_m"], df_ref["glare"], linewidth=2.0, label="Glare")
-    axes[0].plot(df_ref["distance_m"], df_ref["attr_ambiguity"], linewidth=2.0, label="Attribution ambiguity")
-    axes[0].plot(df_ref["distance_m"], df_ref["z_conflict"], linewidth=2.0, label="Observed conflict")
-    axes[0].set_ylabel("Shared env.")
-    axes[0].set_title(f"Typical adjacent-open-risk run (run_id={run_id})")
-    axes[0].grid(alpha=0.25)
-    axes[0].legend(ncol=3, fontsize=9)
+    ].sort_values("distance_m", ascending=True)
+    ax_env.plot(df_ref["distance_m"], df_ref["glare"], linewidth=2.0, label="Glare")
+    ax_env.plot(df_ref["distance_m"], df_ref["attr_ambiguity"], linewidth=2.0, label="Attribution ambiguity")
+    ax_env.plot(df_ref["distance_m"], df_ref["z_conflict"], linewidth=2.0, label="Observed conflict")
+    ax_env.set_ylabel("Shared env.")
+    ax_env.grid(alpha=0.25)
+    ax_env.legend(ncol=2, fontsize=8, loc="upper right")
 
     # Beliefs
-    axes[1].plot(df_ref["distance_m"], df_ref["z_open"], linestyle="--", linewidth=2.0, label="Shared open cue")
-    axes[1].plot(df_ref["distance_m"], df_ref["z_attr"], linestyle="--", linewidth=2.0, label="Shared ego-lane cue")
+    ax_belief.plot(df_ref["distance_m"], df_ref["z_open"], linestyle="--", linewidth=2.0, label="Shared open cue")
+    ax_belief.plot(df_ref["distance_m"], df_ref["z_attr"], linestyle="--", linewidth=2.0, label="Shared ego-lane cue")
     for arch in ARCHITECTURES:
         df = raw_df[
             (raw_df["run_id"] == run_id)
             & (raw_df["architecture"] == arch)
-        ].sort_values("distance_m", ascending=False)
-        axes[1].plot(df["distance_m"], df["b_pass"], linewidth=2.2, label=f"{ARCH_LABELS[arch]} belief")
-    axes[1].axhline(COMMIT_THRESHOLD, linestyle=":", linewidth=1.2)
-    axes[1].set_ylabel("Belief")
-    axes[1].grid(alpha=0.25)
-    axes[1].legend(ncol=2, fontsize=8)
+        ].sort_values("distance_m", ascending=True)
+        ax_belief.plot(df["distance_m"], df["b_pass"], linewidth=2.2, label=f"{ARCH_LABELS[arch]} belief")
+    ax_belief.axhline(COMMIT_THRESHOLD, linestyle=":", linewidth=1.2)
+    ax_belief.set_ylabel("Belief")
+    ax_belief.grid(alpha=0.25)
+    ax_belief.legend(ncol=2, fontsize=7.5, loc="upper right")
 
     # Decisions
     for arch in ARCHITECTURES:
         df = raw_df[
             (raw_df["run_id"] == run_id)
             & (raw_df["architecture"] == arch)
-        ].sort_values("distance_m", ascending=False)
-        axes[2].step(df["distance_m"], df["decision_id"], where="post", linewidth=2.0, label=ARCH_LABELS[arch])
-    axes[2].set_ylabel("Decision")
-    axes[2].set_yticks(list(STATE_TO_ID.values()), list(STATE_TO_ID.keys()))
-    axes[2].grid(alpha=0.25)
-    axes[2].legend(ncol=3, fontsize=9)
+        ].sort_values("distance_m", ascending=True)
+        ax_decision.step(df["distance_m"], df["decision_id"], where="post", linewidth=2.0, label=ARCH_LABELS[arch])
+    ax_decision.set_ylabel("Decision")
+    ax_decision.set_yticks(list(STATE_TO_ID.values()), list(STATE_TO_ID.keys()))
+    ax_decision.set_xlabel("Distance to entrance (m)")
+    ax_decision.grid(alpha=0.25)
+    ax_decision.legend(ncol=2, fontsize=8, loc="upper right")
 
     # Speed
     for arch in ARCHITECTURES:
         df = raw_df[
             (raw_df["run_id"] == run_id)
             & (raw_df["architecture"] == arch)
-        ].sort_values("distance_m", ascending=False)
-        axes[3].plot(df["distance_m"], df["speed_mps"], linewidth=2.0, label=ARCH_LABELS[arch])
-    axes[3].set_ylabel("Speed (m/s)")
-    axes[3].set_xlabel("Distance to entrance (m)")
-    axes[3].invert_xaxis()
-    axes[3].grid(alpha=0.25)
+        ].sort_values("distance_m", ascending=True)
+        ax_speed.plot(df["distance_m"], df["speed_mps"], linewidth=2.0, label=ARCH_LABELS[arch])
+    ax_speed.set_ylabel("Speed (m/s)")
+    ax_speed.set_xlabel("Distance to entrance (m)")
+    ax_speed.grid(alpha=0.25)
 
-    fig.tight_layout()
+    x_max = float(df_ref["distance_m"].max())
+    x_min = float(df_ref["distance_m"].min())
+    for ax in axes.ravel():
+        ax.set_xlim(x_max, x_min)
+
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(save_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
 
