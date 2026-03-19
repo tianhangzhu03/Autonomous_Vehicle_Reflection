@@ -32,7 +32,7 @@ Unsafe behavior emerges when the stack commits too early, fails to override stal
 
 \section{Unsafe Scenarios}
 
-\subsection{B1: Signal Misread or Lane-Attribution Error at a Reversible-Lane Entrance}
+\subsection{B1: Reversible-Lane Entrance Failure}
 
 B1 considers a reversible-lane entrance where overhead lane-use control signals are degraded by glare, occlusion, and viewpoint shift. The key risk is not only semantic misclassification of the signal itself, but incorrect signal-to-lane attribution. In the dominant unsafe case, an adjacent lane displays an open-looking cue while the ego lane should not inherit that authority. As a result, a permissive stack may convert a visible open cue into ego-lane passability belief even though attribution remains unresolved \cite{behrendt2017,jensen2018,hirabayashi2019,monninger2023}.
 
@@ -47,7 +47,7 @@ Both phenotypes are safety-relevant, because the former is a stable wrong decisi
     \label{fig:b1_scene}
 \end{figure}
 
-\subsection{B2: Temporary Rerouting Conflict at a Freeway Exit During a Transition Window}
+\subsection{B2: Freeway-Exit Transition Conflict}
 
 B2 considers a freeway off-ramp where the nominal route prior still suggests that staying in the rightmost lane leads to the intended exit, while near-field temporary control has already begun to close, redirect, or partially block that exit. The core risk is therefore not a missed work-zone detection in isolation, but failure to override stale exit intent during the transition window. If the original exit remains invalid but the stack continues to treat it as valid, the vehicle may commit into a closed or redirected region too late and then attempt an unstable correction \cite{mutcd2023,manuel2020}.
 
@@ -148,7 +148,7 @@ Across the full B2 protocol, multi-sensor permissive still exhibits more arbitra
 
 The Part B mitigation philosophy follows the same logic as Part A: the main problem is not a missing detector in isolation, but premature commitment under unresolved contradiction. For rule-priority corner cases, the corresponding design shift is from \emph{semantic trust} to \emph{authority-aware arbitration}. The stack should not only estimate what a local cue means, but also whether that cue has enough spatial attribution, temporal persistence, and control authority to override route priors or previous intent \cite{veer2022,shalev2017}. In both B1 and B2, the mitigation therefore acts at the fusion-to-planning interface rather than only at the raw perception layer.
 
-\subsubsection{B1 Mitigation: Attribution-Gated Commitment and Multi-Frame Confirmation}
+\subsubsection{B1 Mitigation: Attribution-Gated Commitment}
 
 For B1, the dominant risk is that an open-looking overhead cue is converted into ego-lane commitment before lane attribution is sufficiently resolved. The mitigation should therefore prevent direct conversion from ``signal looks open'' to ``ego lane is open.'' Instead, commitment should be gated by three coupled conditions:
 \begin{itemize}
@@ -166,7 +166,7 @@ For B1, the dominant risk is that an open-looking overhead cue is converted into
     \item \textit{Safe-lane fallback.} If attribution remains unresolved near the entrance, the planner should default to the currently known-safe lane and explicitly forbid entering the reversible lane.
 \end{itemize}
 
-\subsubsection{B2 Mitigation: Hold-First Transition Arbitration with Override Locking}
+\subsubsection{B2 Mitigation: Hold-First Arbitration}
 
 For B2, the key hazard is stale exit intent surviving too far into a temporary-control transition window. The mitigation must therefore be \emph{hold-first}: far from the exit, the stack may preserve route intent or prepare for a possible exit, but it must not finalize exit commitment until local temporary-control and boundary evidence remain weak. Once temporary control becomes dominant, the mitigation should override stale route priors, reset any previous exit-confirmation state, and lock into rerouting if needed.
 

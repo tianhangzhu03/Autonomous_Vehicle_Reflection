@@ -43,11 +43,11 @@
 \begin{document}
 
 \begin{abstract}
-This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-garage-door false free-space commitment), B1 (reversible-lane signal misread and lane-attribution error), and B2 (transition-window mode oscillation under unsynchronized lane-control signals). For each scenario, we analyze the failure chain from perception or rule interpretation to planning and control, and compare camera-only against multi-sensor architectures.
+This project conducts a red-team analysis of autonomous driving corner cases where nominal modules fail under conflicting evidence. We study four scenarios: A1 (reflective-facade ghost vehicle), A2 (transparent-garage-door false free-space commitment), B1 (reversible-lane signal misread and lane-attribution error), and B2 (stale exit-prior conflict under temporary local control near an off-ramp). For each scenario, we analyze the failure chain from perception or rule interpretation to planning and control, and compare camera-only against multi-sensor architectures.
 
 Three findings are consistent across scenarios. First, unsafe behavior is mainly caused by premature commitment under contradiction rather than isolated detector error. Second, multi-sensor architectures improve average robustness but do not guarantee safety when fusion and arbitration layers do not explicitly model uncertainty and authority conflicts. Third, mitigation is most effective at cross-module interfaces, including contradiction-aware fusion, conservative unknown handling, robust lane attribution, and transition-state arbitration constraints.
 
-Team contribution statement: Member A (Tianhang Zhu) is responsible for Part A (A1/A2), including literature synthesis and scenario-level analysis of reflection and transparent-glass failures. Member B (Yiming Liu) is responsible for Part B (B1/B2), including reversible-lane scenario design and analysis. Final integration and presentation are completed jointly.
+Team contribution statement: Member A (Tianhang Zhu) is responsible for Part A (A1/A2), including literature synthesis and scenario-level analysis of reflection and transparent-glass failures. Member B (Yiming Liu) is responsible for Part B (B1/B2), including B1 reversible-lane and B2 temporary-control scenario design and analysis. Final integration and presentation are completed jointly.
 \end{abstract}
 
 \maketitle
@@ -56,11 +56,11 @@ Team contribution statement: Member A (Tianhang Zhu) is responsible for Part A (
 
 Autonomous driving performance has improved substantially on benchmark tasks, yet deployment risk remains dominated by long-tail conditions where sensing and traffic-control evidence become inconsistent. These failures are hard to capture with average-case metrics because they emerge from cross-module coupling: a plausible perception hypothesis can be over-trusted by fusion, temporary rule conflicts can destabilize mode arbitration, and local uncertainty can escalate into safety-critical control interventions.
 
-This project targets four representative corner cases in two risk families. A1 and A2 capture physics-driven inconsistency caused by reflection and transparency effects of glass. B1 and B2 capture rule-driven inconsistency in reversible-lane operation. This design intentionally covers both overreaction failures (false obstacle commitment and unnecessary emergency response) and underreaction failures (false free-space commitment and delayed conflict resolution).
+This project targets four representative corner cases in two risk families. A1 and A2 capture physics-driven inconsistency caused by reflection and transparency effects of glass. B1 captures reversible-lane signal and lane-attribution failure, while B2 captures stale route intent conflicting with temporary local control near an exit transition. This design intentionally covers both overreaction failures (false obstacle commitment and unnecessary emergency response) and underreaction failures (false free-space commitment and delayed conflict resolution).
 
 A core objective is to compare two architecture classes: camera-only and multi-sensor. The comparison is framed as a safety-logic problem rather than pure detection accuracy. Camera-only stacks are generally more exposed to semantic ambiguity under glare, occlusion, and reflection. Multi-sensor stacks add geometric and motion evidence \cite{huang2022survey}, but they can still fail when contradictory observations are fused as confirmation or when rule arbitration is unstable.
 
-\subsection{Real-World Motivation: Reported Cases Aligned with A1--B2}
+\subsection{Motivation}
 The four project scenarios are grounded in reported real-world safety events rather than synthetic thought experiments.
 Figure~\ref{fig:real_world_motivation} consolidates the A1/A2/B2 evidence snapshots used to motivate the scenario design in this report.
 
@@ -71,20 +71,22 @@ Figure~\ref{fig:real_world_motivation} consolidates the A1/A2/B2 evidence snapsh
 \textbf{B1-aligned case (lane-direction failure):}
 ABC7 reported a Waymo vehicle driving into oncoming traffic in Tempe, Arizona, and the onboard passenger intervened to steer away \cite{abc7tempe2024}. This event is consistent with B1 lane-direction and lane-attribution failure under real traffic operation.
 
-\textbf{B2-aligned case (state instability and traffic-control conflict):} AP reported that during a San Francisco power outage, Waymo vehicles stopped in intersections and blocked roads while attempting to operate under degraded control context \cite{ap2025waymopower}. This aligns with B2, where control-state arbitration under conflicting or degraded traffic-control cues can produce oscillation, deadlock, or blocking behavior.
+\textbf{B2-aligned case (temporary-control authority conflict):} AP reported that during a San Francisco power outage, Waymo vehicles stopped in intersections and blocked roads while attempting to operate under degraded control context \cite{ap2025waymopower}. This aligns with B2 at the authority-conflict level: degraded or rapidly changing local control can invalidate nominal route intent and requires a stable override of stale guidance.
 
 \begin{figure*}[t]
   \centering
-  \begin{minipage}[t]{0.38\textwidth}
+  % Tune the column widths so the stacked 16:9 photos align with the taller
+  % recall screenshot and the full figure reads as a clean rectangle.
+  \begin{minipage}[t]{0.435\textwidth}
     \vspace{0pt}
     \centering
     \includegraphics[width=\linewidth]{A1_abc7_baybridge.jpg}
 
-    \vspace{4pt}
+    \vspace{2pt}
 
     \includegraphics[width=\linewidth]{B2_user.jpg}
   \end{minipage}\hfill
-  \begin{minipage}[t]{0.58\textwidth}
+  \begin{minipage}[t]{0.55\textwidth}
     \vspace{0pt}
     \centering
     \includegraphics[width=\linewidth]{A2.jpg}
@@ -99,15 +101,15 @@ Regulatory and protocol documents establish that false or context-inappropriate 
 
 For reflection and transparency scenarios (A1/A2), recent work consistently shows that glass decouples appearance from geometry. Reflection-focused studies report that reflective surfaces can yield stable visual hypotheses while geometric support remains frame-dependent or inconsistent \cite{zhao2024ref,li2024plane}. Transparent-obstacle studies show a complementary failure mode: missing or distorted depth near transparent boundaries can corrupt occupancy and traversability when uncertainty is collapsed too early \cite{tibebu2021glass,weerakoon2024topgn}. Radar multipath studies add further risk for A1, where weak radar responses can reinforce ghost hypotheses instead of rejecting them \cite{zheng2024radar}.
 
-For reversible-lane scenarios (B1/B2), transportation standards and operational studies are the primary evidence base. MUTCD defines lane-use control semantics and authority \cite{mutcd2023}, while FHWA reports indicate that reversible-lane safety depends strongly on implementation and transition operations rather than geometry alone \cite{fhwa2019,fhwa2008}. Meta-analytic evidence supports the same trend \cite{manuel2020}. On the perception side, traffic-light recognition remains sensitive to scale, occlusion, and illumination \cite{behrendt2017,jensen2018}; map-aided recognition and traffic-light-to-lane assignment improve robustness by constraining semantics to lane geometry \cite{hirabayashi2019,monninger2023}. At the planning layer, rule-hierarchy formulations and RSS-style conservative envelopes provide principled arbitration tools \cite{veer2022,shalev2017}, but most formulations assume more stable semantic inputs than those observed during real transition windows.
+For rule-authority scenarios (B1/B2), transportation standards and operational studies are the primary evidence base. MUTCD defines both lane-use control semantics and temporary traffic-control authority \cite{mutcd2023}, while FHWA reports indicate that safety depends strongly on implementation and transition operations rather than geometry alone \cite{fhwa2019,fhwa2008}. Meta-analytic evidence supports the same trend \cite{manuel2020}. For B1, traffic-light recognition remains sensitive to scale, occlusion, and illumination \cite{behrendt2017,jensen2018}; map-aided recognition and traffic-light-to-lane assignment improve robustness by constraining semantics to lane geometry \cite{hirabayashi2019,monninger2023}. For B2, the key gap is transition-window authority conflict: stale route priors can remain active while local temporary control and boundary evidence should force rerouting. Rule-hierarchy formulations and RSS-style conservative envelopes provide principled arbitration tools \cite{veer2022,shalev2017}, but most formulations assume more stable semantic inputs than those observed during exit-transition conflicts.
 
 \section{UNSAFE SCENARIOS}
 
-\subsection{Part A: Glass-Induced Unsafe Scenarios (A1, A2)}
+\subsection{Part A: Glass-Induced Scenarios}
 
 Part A analyzes two corner cases driven by the same physical mechanism, namely the decoupling between appearance and geometry around reflective or transparent surfaces, but with opposite decision-level failures. A1 is \textit{False Positive Trajectory Commitment under Phantom Obstacles}, while A2 is \textit{False Free-Space Commitment under Transparent Barriers}.
 
-\subsubsection{A1: Ghost Vehicle from Reflective Facades}
+\subsubsection{A1: Ghost Vehicle from Facades}
 
 A1 occurs when a real vehicle outside the ego lane is reflected by a facade and appears as a forward obstacle candidate in the camera view. Reflection-aware LiDAR studies report unstable and geometry-inconsistent support near reflective planes \cite{zhao2024ref,li2024plane}. Radar under multipath may further contribute ambiguous weak-positive evidence instead of a strict veto \cite{zheng2024radar}. Consequently, the evidence profile is rarely a clean camera-positive versus geometry-negative split; it more often appears as dominant visual evidence reinforced by ambiguous auxiliary signals, as illustrated in Figure~\ref{fig:a1}.
 
@@ -133,7 +135,7 @@ Without explicit contradiction penalty, both camera-only and multi-sensor pipeli
   \label{fig:a1}
 \end{figure}
 
-\subsubsection{A2: Transparent Garage Door and False Free-Space Commitment}
+\subsubsection{A2: Transparent Garage Door Failure}
 
 A2 is instantiated at an underground parking garage exit secured by a closed transparent glass door. This setting combines ramp geometry with a strong illumination transition from dim interior to bright exterior. The camera observes a visually continuous outdoor street scene through glass, while LiDAR can pass through or scatter at the transparent medium, creating a depth void at the true boundary \cite{tibebu2021glass,weerakoon2024topgn}.
 The geometric mismatch and boundary ambiguity are illustrated in Figure~\ref{fig:a2}.
@@ -159,11 +161,11 @@ m_c^{t+1}(\Omega)=(1-\kappa)m_c^t(\Omega),
 \end{equation}
 with large $\kappa$ despite missing geometric confirmation.
 
-\subsection{Part B: Rule-Priority Conflict Scenarios (B1, B2)}
+\subsection{Part B: Rule-Priority Conflicts}
 
 Part B studies corner cases where the dominant failure is rule arbitration under temporary control, rather than object detection alone. The shared hazard is premature commitment when local authority (overhead lane control or temporary rerouting) conflicts with stale route-level intent \cite{mutcd2023,manuel2020,veer2022}.
 
-\subsubsection{B1: Signal Misread or Lane-Attribution Error at a Reversible-Lane Entrance}
+\subsubsection{B1: Reversible-Lane Entrance Failure}
 
 B1 occurs at reversible-lane entrances under glare, partial occlusion, and viewpoint compression. The critical error is not only misreading a red-X/green-arrow cue, but assigning a correct cue to the wrong lane. In the dominant unsafe mode, an adjacent lane appears open while ego-lane attribution remains unresolved; a permissive policy may still convert the open-looking cue into ego-lane passability.
 
@@ -178,7 +180,7 @@ Figure~\ref{fig:b1_scene_main} shows the B1 entrance geometry and attribution am
   \label{fig:b1_scene_main}
 \end{figure}
 
-\subsubsection{B2: Transition-Window Conflict at a Freeway Exit}
+\subsubsection{B2: Freeway-Exit Transition Conflict}
 
 B2 occurs when a stale exit prior conflicts with temporary local control (closure, reroute, or partial blockage) near an off-ramp. The main failure is late override: the planner keeps treating the exit as valid after local authority has changed. This yields unstable corrections near the gore region and can trigger intrusion into a restricted zone before merge-back is initiated.
 
@@ -195,7 +197,7 @@ Figure~\ref{fig:b2_scene_main} summarizes the B2 transition-window conflict near
 
 \section{Simulation \& Evaluation Setup}
 
-\subsection{Part A: Phenomenological Simulation, Metrics, and Experimental Findings}
+\subsection{Part A: Simulation and Findings}
 
 Part A uses a lightweight CPU-only 2D closed-loop simulator (\texttt{NumPy}/\texttt{SciPy}) to isolate the core failure mechanism: unsafe commitment under contradictory evidence. The implementation intentionally does not emulate full rendering optics; instead, it directly parameterizes perception evidence at the fusion-planning interface. This design is computationally efficient and preserves controllability of corner-case factors.
 
@@ -278,7 +280,7 @@ The time evolution of speed and unknown evidential mass for A2 is shown in Figur
   \end{tabular}
 \end{table}
 
-\subsection{Part B: Phenomenological Setup, Metrics, and Findings}
+\subsection{Part B: Setup and Findings}
 
 Part B follows the same simulation philosophy as Part A: shared randomized cases are generated once per seed and reused across three stacks (\textit{camera-only}, \textit{multi-sensor permissive}, \textit{mitigation}). The objective is to isolate arbitration-policy effects under identical contradictory cues, instead of conflating policy differences with different random scene draws.
 
@@ -315,7 +317,7 @@ Figure~\ref{fig:b1_typical_main} presents a representative B1 run across the thr
   \end{tabular}
 \end{table}
 
-B2 is best interpreted on the \texttt{closed\_transition\_conflict} subset, where stale exit priors and temporary local authority conflict most strongly. In this subset, CIR is $0.486$ (camera-only), $0.014$ (multi-sensor permissive), and $0.000$ (mitigation). Late Merge-Back Severity (LMS) decreases from $22.429\,\mathrm{m}$ to $0.398\,\mathrm{m}$ and $0.012\,\mathrm{m}$ under the same architecture order. DOC remains elevated for multi-sensor permissive ($4.886$) compared with mitigation ($3.414$), indicating residual transition-window oscillation even when average intrusion risk is reduced.
+B2 is best interpreted on the \texttt{closed\_transition\_conflict} subset, where stale exit priors and temporary local authority conflict most strongly. After correcting the mitigation state machine so that far-field behavior remains in \texttt{KEEP\_ROUTE}, \texttt{EXIT\_PREP}, or \texttt{CAUTIOUS\_HOLD}, the ordering matches the intended Part A-style conclusion. In this subset, CIR is $0.486$ (camera-only), $0.014$ (multi-sensor permissive), and $0.000$ (mitigation). Late Merge-Back Severity (LMS) decreases from $22.429\,\mathrm{m}$ to $0.398\,\mathrm{m}$ and $0.012\,\mathrm{m}$ under the same architecture order. DOC remains elevated for multi-sensor permissive ($4.886$) compared with mitigation ($3.414$), indicating residual transition-window oscillation even when average intrusion risk is reduced.
 Figure~\ref{fig:b2_typical_main} provides a typical closed-transition-conflict trajectory comparison.
 
 \begin{figure}[t]
@@ -350,7 +352,7 @@ Figure~\ref{fig:b2_typical_main} provides a typical closed-transition-conflict t
 
 The core mitigation theme is a transition from \textit{semantic trust} to \textit{epistemic uncertainty management}. Section~4 shows that permissive architectures fail when contradictory evidence is forced into deterministic states. The proposed framework therefore intervenes at the fusion-to-planning interface \cite{huang2022survey}, treating unresolved cross-modal contradiction as a primary trigger for safety-critical fallback rather than as nuisance noise.
 
-\subsubsection{A1 Mitigation: Variance-Penalized Fusion and Temporal Parallax}
+\subsubsection{A1 Mitigation: Variance-Penalized Fusion}
 
 To mitigate false-positive trajectory commitment near reflective facades (A1), the stack must break camera semantic dominance.
 
@@ -363,7 +365,7 @@ To mitigate false-positive trajectory commitment near reflective facades (A1), t
   \item \textit{Reflection-suppressed appearance priors.} Polarization-based reflection removal can reduce semantic contamination before detection and tracking \cite{polarfree2025}.
 \end{itemize}
 
-\subsubsection{A2 Mitigation: Evidential Preservation + Kinematic Envelope}
+\subsubsection{A2 Mitigation: Evidential Preservation + Envelope}
 
 For transparent barriers (A2), mitigation preserves unknown evidential mass $m_c(\Omega)$ under depth dropouts and explicitly forbids premature collapse into free-space $m_c(F)$.
 
@@ -411,7 +413,7 @@ Within the 2D kinematic boundary model, this coupling of epistemic uncertainty a
   \end{equation}
 \end{itemize}
 
-\subsection{Part B: Mitigation Strategies for B1/B2}
+\subsection{Part B: B1/B2 Mitigation Strategies}
 
 Part B mitigation follows the same principle as Part A: do not convert unresolved contradiction into deterministic high-authority actions.
 
@@ -429,13 +431,13 @@ The B2 mitigation uses a hold-first state machine with explicit override and loc
 The A2 zero-collision outcome should be read as a bounded result, not as a universal guarantee. In our simulator, braking is near-instant and friction is summarized by a bounded effective deceleration. That is a valid mechanism test, but not a full deployment test. In production, the same policy must survive latency, tire-force limits, grade changes, and estimator delay. In other words, the current result is a safety lower bound under controlled assumptions, consistent with SOTIF-style reasoning about functional insufficiency and triggering conditions \cite{iso21448}.
 
 \textbf{Safety vs. throughput is structural, not accidental.}
-The mitigation works by refusing premature commitment when evidence conflicts. That choice is exactly why collision risk drops, and also why travel time rises in A2. This is not a tuning artifact; it is an architectural trade-off. A practical next step is to replace static caution with context-dependent caution: keep strict envelopes near high-cost boundaries (glass doors, lane-control transitions), but recover nominal speed quickly once contradiction decays. The objective is to minimize \emph{time under unresolved uncertainty}, not to maximize conservatism everywhere.
+The mitigation works by refusing premature commitment when evidence conflicts. That choice is exactly why collision risk drops, and also why travel time rises in A2. This is not a tuning artifact; it is an architectural trade-off. A practical next step is to replace static caution with context-dependent caution: keep strict envelopes near high-cost boundaries (glass doors, temporary-control exit transitions), but recover nominal speed quickly once contradiction decays. The objective is to minimize \emph{time under unresolved uncertainty}, not to maximize conservatism everywhere.
 
 \textbf{From mechanism proof to assurance evidence.}
 The current 100-seed study establishes directional effects robustly, but it does not yet close the assurance loop needed for deployment. Prior work shows why mileage-only arguments are insufficient for AV safety claims \cite{kalra2016}. The implication is direct: our mechanism-level simulator should be embedded in a broader scenario-based evidence stack (closed-loop simulation, targeted proving-ground replay, and selective on-road confirmation), as advocated in AV testing and validation literature \cite{koopman2016sae,koopman2017its}.
 
 \textbf{Concrete next stage.}
-For Part A, the immediate extension is to move from 2D phenomenology to 3D constrained realism: explicit sensor asynchrony, calibrated actuation lag, slope-dependent stopping envelopes, and reflection/transparency material priors. For Part B, the key extension is authority-aware transition testing under delayed or inconsistent lane-control updates. At system level, both tracks should be organized into a safety-case workflow aligned with current standards and regulation-facing evaluation practice \cite{ul4600,unr157}.
+For Part A, the immediate extension is to move from 2D phenomenology to 3D constrained realism: explicit sensor asynchrony, calibrated actuation lag, slope-dependent stopping envelopes, and reflection/transparency material priors. For Part B, the key extension is authority-aware transition testing under stale exit priors, temporary local control, and no-return override conditions. At system level, both tracks should be organized into a safety-case workflow aligned with current standards and regulation-facing evaluation practice \cite{ul4600,unr157}.
 
 \section{Conclusion}
 
